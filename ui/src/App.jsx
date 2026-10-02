@@ -102,7 +102,7 @@ export default function App() {
       {!p && (
         <div className="hello">
           <h1>LearnOS</h1>
-          <p>No episode yet. Start one with <code>POST /reset</code> (try <a href="/api/docs" target="_blank">/api/docs</a>)
+          <p>No episode yet. Start one with <code>POST /reset</code> (try <a href="docs" target="_blank">docs</a>)
           or run an agent from the client. This desktop shows whatever the environment is doing.</p>
         </div>
       )}

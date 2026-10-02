@@ -4,19 +4,44 @@ import { create } from "zustand";
 // payload = { workspace, step, done, termination, mode, instance_id, level, budget, agent_opened, action_log }
 export const useEnv = create(() => ({ connected: false, payload: null }));
 
-let retry = 0;
+// All URLs are relative to the page, so the desktop works at any mount point: nginx in Docker,
+// the env server directly, or Colab's port proxy.
+const base = new URL(".", location.href);
+export const apiUrl = (p) => new URL(p, base).toString();
+
+// Websocket first; if it cannot connect (some proxies block websockets) fall back to polling the
+// same payload from GET ui/state. ?poll forces polling.
+let retry = 0, polling = false;
 export function connect() {
-  const url = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws";
-  const ws = new WebSocket(url);
+  if (new URLSearchParams(location.search).has("poll")) return poll();
+  const ws = new WebSocket(apiUrl("ws").replace(/^http/, "ws"));
+  let opened = false;
   ws.onopen = () => {
+    opened = true;
     retry = 0;
     useEnv.setState({ connected: true });
   };
   ws.onmessage = (e) => useEnv.setState({ payload: JSON.parse(e.data) });
   ws.onclose = () => {
     useEnv.setState({ connected: false });
-    setTimeout(connect, Math.min(5000, 500 * 2 ** retry++));
+    if (!opened && ++retry >= 2) return poll();
+    setTimeout(connect, Math.min(5000, 500 * 2 ** retry));
   };
+}
+
+function poll() {
+  if (polling) return;
+  polling = true;
+  const tick = async () => {
+    try {
+      const r = await fetch(apiUrl("ui/state"), { cache: "no-store" });
+      useEnv.setState({ connected: r.ok, ...(r.ok ? { payload: await r.json() } : {}) });
+    } catch {
+      useEnv.setState({ connected: false });
+    }
+    setTimeout(tick, 1000);
+  };
+  tick();
 }
 
 // Live mode only: the human is the learner, so the desktop reports what they are looking at.
@@ -24,7 +49,7 @@ export function connect() {
 export function reportActivity(app, detail = "") {
   const p = useEnv.getState().payload;
   if (!p || p.mode !== "live") return;
-  fetch("/api/live/activity", {
+  fetch(apiUrl("live/activity"), {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ t: p.workspace.t, app, minutes: 0, detail }),

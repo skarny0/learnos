@@ -18,6 +18,15 @@ pip install -e client/       # smolagents tools that talk to the env
 jupyter lab notebooks/       # 01_tour.ipynb
 ```
 
+## In a notebook (Colab or Jupyter), no Docker
+
+```python
+%pip install -q -e learnos/env -e learnos/client     # after cloning the repo
+from learnos_client import start, show, make_tools
+env = start()      # LearnOS server inside the kernel; returns a client holding the grader token
+show()             # the desktop, embedded and live below the cell (show_in_tab() for a full tab)
+```
+
 ## Layout
 
 ```

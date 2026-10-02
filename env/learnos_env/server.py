@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .env import LearnOSEnv
@@ -32,14 +33,21 @@ class StepReq(BaseModel):
     args: dict = {}
 
 
-async def _broadcast():
+def _ui_payload() -> dict | None:
+    """What the desktop renders. Workspace + episode info + the agent's own actions; never LearnerState."""
     if not env.state:
-        return
+        return None
     st = env.state
-    payload = {"workspace": st.workspace.model_dump(), "step": st.step, "done": st.done,
+    return {"workspace": st.workspace.model_dump(), "step": st.step, "done": st.done,
                "termination": st.termination, "mode": MODE, "instance_id": st.instance.instance_id,
                "level": st.instance.level, "budget": st.instance.budget.model_dump(),
                "agent_opened": sorted(env.opened), "action_log": env.action_log[-50:]}
+
+
+async def _broadcast():
+    payload = _ui_payload()
+    if payload is None:
+        return
     dead = []
     for ws in _subscribers:
         try:
@@ -106,6 +114,12 @@ def grader(signal: str, delay_hours: float = 0.0, episode_id: str | None = None,
 
 
 # ---------------------------------------------------------------------- ui --
+@app.get("/ui/state")
+def ui_state():
+    """Polling fallback for the desktop when websockets are unavailable (e.g. some notebook proxies)."""
+    return _ui_payload()
+
+
 @app.websocket("/ws")
 async def ws(websocket: WebSocket):
     await websocket.accept()
@@ -142,3 +156,10 @@ async def live_activity(event: ActivityEvent):
     _live_state().workspace.student_activity.append(event)
     await _broadcast()
     return {"ok": True}
+
+
+# The prebuilt desktop (scripts/build_ui.sh -> learnos_env/ui_dist). Mounted last so API routes win.
+# Lets one process serve API + desktop, which is what Colab needs (one port, no nginx).
+_UI = Path(__file__).parent / "ui_dist"
+if _UI.exists():
+    app.mount("/", StaticFiles(directory=_UI, html=True), name="desktop")

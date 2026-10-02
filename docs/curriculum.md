@@ -79,7 +79,7 @@ by `episode_id`).
 - **Carries forward:** a validated brick (shared with the class); reward v3.
 - **Status:** needs the brick refactor.
 
-## M6 — The classroom
+## M6 — The classroom (tabled)
 - **Seed from M4–M5:** one tutor per student does not scale; real teachers share their time.
 - **Environment:** one teacher agent, N students of mixed types in one episode; per-student activity streams
   and DMs; the budget is the teacher's time. One-on-one becomes a class of size 1, so all earlier tools still work.
@@ -87,7 +87,7 @@ by `episode_id`).
   (mean? worst student? equity across types?).
 - **Observability skill:** traces become per-student timelines inside one run; find who got neglected and why.
 - **Carries forward:** teacher agent; a stance on what "good for a class" means.
-- **Status:** design open (do students affect each other?).
+- **Status:** tabled for now (2026-10-01). Open question if revived: do students affect each other?
 
 ## M7 — In the wild
 - **Seed from everything:** all of this was simulated.
@@ -107,7 +107,7 @@ modules, so later sections can query back to earlier traces.
 
 | Worksheet section | Module |
 |---|---|
-| Setup (install, start LearnOS inside Colab, Langfuse keys) | — |
+| Setup: `start()` runs LearnOS in the kernel, `show()` embeds the desktop, Langfuse keys | — |
 | Part 1–2: reading, eval design (existing) | framing |
 | Part 3: build the agent | M0 |
 | Part 5: observability (`notebooks/part5_observability.ipynb`) | M1 |
@@ -129,5 +129,5 @@ for M0), and its 2-day take-home is **M7**. M3–M6 are extensions or later week
 | M4, M5 | construct ("brick") refactor of the learner model | todo |
 | M4 | learner-type library + sweep runner | todo |
 | M5 | critical-thinking brick as the worked example | todo |
-| M6 | multi-student episodes (`student` arg, defaulting to the only one) | design open |
+| M6 | multi-student episodes (`student` arg, defaulting to the only one) | tabled |
 | M7 | live-mode UI forms, activity reporting | partial |

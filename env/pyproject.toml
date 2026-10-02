@@ -20,3 +20,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["learnos_env*"]
+
+[tool.setuptools.package-data]
+learnos_env = ["ui_dist/*", "ui_dist/**/*"]
