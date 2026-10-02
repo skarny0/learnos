@@ -22,7 +22,8 @@ jupyter lab notebooks/       # 01_tour.ipynb
 
 ```
 env/        FastAPI service. Owns canonical state, seeded reset/step, grader, traces.
-ui/         Web desktop (React) that renders env state over a websocket. No logic.
+ui/         Web desktop (Vite + React + Zustand) that renders env state over a websocket. No logic.
+            Dev: `cd ui && npm install && npm run dev` (:5173, proxies to the env on :8000).
 client/     Python package: smolagents Tool classes + thin HTTP client + eval runner.
 instances/  Task instances (seed + materials + budget). No targets, no rewards.
 docs/       Environment spec, observability levels, grader interface, workshop flow.

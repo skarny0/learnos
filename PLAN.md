@@ -54,6 +54,10 @@ compute rank variance, reveal `true_state`). Rank correlation of each proxy vs
 4. `notebooks/06_live.ipynb` with the pre-registration cell (writes reward + timestamp to the volume).
 
 ## Phase 5 — the OS skin (2–4 days, parallelisable with 1–4)
+**Started (fresh build, not a ryOS fork):** `ui/` is now Vite + React + Zustand: menu bar with
+episode status, dock (8 apps + Activity Monitor + Agent Log), draggable/resizable System-7
+windows, follow-agent mode, `?open=a,b` to pre-open windows. Remaining: live-mode quiz form and
+message input; replay of saved traces.
 Replace `ui/index.html` with a Vite + React desktop in the spirit of ryOS (System-7-ish
 windows, dock with exactly the 7 learning apps). It stays a **dumb renderer** of the
 websocket payload plus the live-mode input forms. Options: fork ryokun6/ryos (AGPL-3.0) and

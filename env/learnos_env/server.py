@@ -35,7 +35,11 @@ class StepReq(BaseModel):
 async def _broadcast():
     if not env.state:
         return
-    payload = {"workspace": env.state.workspace.model_dump(), "step": env.state.step, "done": env.state.done}
+    st = env.state
+    payload = {"workspace": st.workspace.model_dump(), "step": st.step, "done": st.done,
+               "termination": st.termination, "mode": MODE, "instance_id": st.instance.instance_id,
+               "level": st.instance.level, "budget": st.instance.budget.model_dump(),
+               "agent_opened": sorted(env.opened), "action_log": env.action_log[-50:]}
     dead = []
     for ws in _subscribers:
         try:

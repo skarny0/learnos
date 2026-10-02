@@ -24,6 +24,7 @@ class LearnOSEnv:
         self.rng = random.Random(0)
         self.trace: TraceWriter | None = None
         self.opened: set[str] = set()        # level-1 visibility set
+        self.action_log: list[dict] = []     # agent's own actions this episode (for the UI)
 
     # ------------------------------------------------------------ lifecycle --
     def reset(self, instance: Instance) -> dict:
@@ -36,6 +37,7 @@ class LearnOSEnv:
                                   baseline_learner=learner.model_copy(deep=True) if learner else None,
                                   mode=self.mode)
         self.opened = set()
+        self.action_log = []
         if self.trace:
             self.trace.close()
         self.trace = TraceWriter(self.data_dir / "traces", instance.instance_id, instance.seed)
@@ -128,6 +130,7 @@ class LearnOSEnv:
         s = self.state
         self.trace.step(step=s.step, action=action, args=args, output=output, t=s.workspace.t,
                         hidden=s.learner, events=events or [])
+        self.action_log.append({"step": s.step, "action": action, "args": args, "output": output, "t": s.workspace.t})
         if s.done:
             self.trace.episode_end(s.termination, hidden=s.learner)
         return {"output": output, "observation": self.observe(), "done": s.done, "step": s.step}
