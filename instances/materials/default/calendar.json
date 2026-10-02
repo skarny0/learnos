@@ -1,0 +1,5 @@
+[
+  {"id": "lecture", "title": "Lecture: environments & evaluation", "start": 60, "duration": 90, "kind": "lecture"},
+  {"id": "friday", "title": "Friday build (10am)", "start": 2640, "duration": 120, "kind": "deadline", "note": "see #course for requirements"},
+  {"id": "gym", "title": "gym", "start": 400, "duration": 60, "kind": "other"}
+]

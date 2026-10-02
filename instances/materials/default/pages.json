@@ -1,0 +1,4 @@
+[
+  {"url": "course://schedule", "title": "Schedule", "content": "Week 3: Environments & evaluation. Friday build 10am (may change, check #course)."},
+  {"url": "course://assignments", "title": "Assignments", "content": "Week 3 build: environment definition + evaluation with pass^k.", "stale": false}
+]

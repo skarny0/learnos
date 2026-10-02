@@ -1,0 +1,6 @@
+[
+  {"id": "m1", "channel": "#course", "author": "instructor", "text": "For Friday's build: define your environment (state/obs/actions) AND report pass^k on at least 3 seeds. Readings in week3 folder.", "t": -600},
+  {"id": "m2", "channel": "#course", "author": "peer_a", "text": "anyone know if we need the attention section?", "t": -300},
+  {"id": "m3", "channel": "#course", "author": "peer_b", "text": "lol no idea", "t": -290},
+  {"id": "m4", "channel": "dm:student", "author": "student", "text": "hey, I started the writeup but I'm stuck on the eval part", "t": -10}
+]

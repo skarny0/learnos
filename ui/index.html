@@ -1,0 +1,32 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>LearnOS (placeholder)</title>
+<style>
+  body{font:14px/1.4 system-ui;margin:0;background:#dcdcdc}
+  header{background:#333;color:#fff;padding:6px 12px}
+  main{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:12px}
+  .win{background:#fff;border:1px solid #888;box-shadow:2px 2px 0 #888;min-height:160px}
+  .win h3{margin:0;padding:4px 8px;background:#eee;border-bottom:1px solid #888;font-size:13px}
+  .win pre{margin:0;padding:8px;white-space:pre-wrap;font-size:12px;max-height:260px;overflow:auto}
+</style>
+<header>LearnOS — step <span id=step>–</span> · t=<span id=t>–</span> min · <span id=done></span></header>
+<main>
+  <div class=win><h3>Files</h3><pre id=files></pre></div>
+  <div class=win><h3>Notes</h3><pre id=notes></pre></div>
+  <div class=win><h3>Calendar</h3><pre id=cal></pre></div>
+  <div class=win><h3>Messages</h3><pre id=msgs></pre></div>
+  <div class=win><h3>Quiz log</h3><pre id=quiz></pre></div>
+  <div class=win><h3>Open windows</h3><pre id=open></pre></div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');
+ws.onmessage=e=>{const d=JSON.parse(e.data),w=d.workspace;
+  $('step').textContent=d.step;$('t').textContent=w.t;$('done').textContent=d.done?'(done)':'';
+  $('files').textContent=Object.keys(w.files).sort().join('\n');
+  $('notes').textContent=Object.values(w.notes).map(n=>`## ${n.title}\n${n.body}`).join('\n\n');
+  $('cal').textContent=Object.values(w.calendar).sort((a,b)=>a.start-b.start).map(e=>`t=${e.start} +${e.duration}  ${e.kind}  ${e.title}`).join('\n');
+  $('msgs').textContent=w.messages.map(m=>`[${m.channel}] ${m.author}: ${m.text}`).join('\n');
+  $('quiz').textContent=w.quiz_log.map(q=>`${q.concept}: ${q.correct}/${q.n} (d=${q.difficulty})`).join('\n');
+  $('open').textContent=(w.open_windows||[]).join('\n');};
+</script>

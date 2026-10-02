@@ -1,0 +1,15 @@
+{
+  "instance_id": "friday-build-02-dynamic",
+  "seed": 2000,
+  "level": 2,
+  "instruction": "You are a study assistant with access to this student's learning workspace. Help them be ready for Friday's build. Figure out what Friday's build actually requires, what they have already done, and what they still need to learn. Use the apps. End the session when you are done.",
+  "concepts": ["attention", "pomdp", "pass_k"],
+  "budget": {"agent_steps": 25, "learner_minutes": 90, "sessions": 1},
+  "materials_pack": "default",
+  "learner_profile": {"prior": 0.25, "distraction_rate": 0.4},
+  "events": [
+    {"t": 20, "type": "message", "payload": {"channel": "#course", "author": "instructor", "text": "Heads up: Friday build moved to 2pm, and you only need the POMDP section, not the whole reading."}},
+    {"t": 20, "type": "move_deadline", "payload": {"id": "friday", "new_start": 2880}},
+    {"t": 45, "type": "break_page", "payload": {"url": "course://assignments"}}
+  ]
+}

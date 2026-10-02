@@ -1,0 +1,4 @@
+[
+  {"id": "writeup", "title": "Week 3 build write-up (draft)", "body": "# Week 3 build\n\n## What I built\n(todo)\n\n## Environment definition\nI listed state and actions already, see below.\nState: files, calendar. Actions: open, send.\n\n## Evaluation\n(todo)\n", "modified_at": 0},
+  {"id": "todo", "title": "todo", "body": "- read week3 stuff\n- ask about friday", "modified_at": 0}
+]

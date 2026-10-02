@@ -1,0 +1,5 @@
+[
+  {"id": "q1", "concept": "pomdp", "difficulty": 0.3, "stem": "In a POMDP, what does the agent maintain instead of the true state?", "answer": "a belief"},
+  {"id": "q2", "concept": "pass_k", "difficulty": 0.4, "stem": "pass^k requires how many of k runs to succeed?", "answer": "all"},
+  {"id": "q3", "concept": "attention", "difficulty": 0.5, "stem": "What hidden variable gates whether shown material is learned?", "answer": "attention"}
+]
