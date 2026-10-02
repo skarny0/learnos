@@ -98,6 +98,24 @@ by `episode_id`).
 
 ---
 
+## The worksheet
+The Colab notebook (`Cognitive_Agents_Environments_Tutorial.ipynb`) is the worksheet the whole curriculum builds
+on. One notebook, one section per module, in the same style as the current tutorial (Problems with point values,
+`CHANGE ME` blocks, deliverables). Students define their agent, detectors and reward once, near the top, and later
+sections extend or redefine them instead of starting over. Their Langfuse project accumulates every run across
+modules, so later sections can query back to earlier traces.
+
+| Worksheet section | Module |
+|---|---|
+| Setup (install, start LearnOS inside Colab, Langfuse keys) | — |
+| Part 1–2: reading, eval design (existing) | framing |
+| Part 3: build the agent | M0 |
+| Part 5: observability (`notebooks/part5_observability.ipynb`) | M1 |
+| Reward spec + hill-climbing | M2 |
+| Later sections | M3–M7 |
+
+Because it runs in Colab, LearnOS must start **inside the Colab VM** (Colab cannot reach a student's Docker).
+
 ## How this maps to the current course
 The 120-minute workshop in `workshop-flow.md` is **M1 + M2** compressed (with cached trajectories standing in
 for M0), and its 2-day take-home is **M7**. M3–M6 are extensions or later weeks.
