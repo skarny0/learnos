@@ -24,7 +24,7 @@ def read_channel(state: EpisodeState, channel: str) -> ActionResult:
         learner_minutes=2)
 def send_to_student(state: EpisodeState, text: str, intent: str, concept: str = "") -> ActionResult:
     ws = state.workspace
-    ws.messages.append(Message(id=f"m{len(ws.messages)+1}", channel="dm:student", author="agent", text=text, t=ws.t))
+    ws.messages.append(Message(id=f"m{len(ws.messages)+1}", channel="dm:student", author="agent", text=text, t=ws.t, intent=intent))
     # The learner's reply is produced by sim (dynamics + renderer) and appended by env.step.
     return ActionResult(output="Sent.", learner_minutes=2,
                         learner_effect={"kind": intent, "concept": concept, "text": text})

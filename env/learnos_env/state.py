@@ -44,6 +44,7 @@ class Message(BaseModel):
     text: str
     t: int                         # sim-minutes
     read: bool = False
+    intent: str = ""               # agent messages: the agent's own label (explain|hint|give_answer|nudge|other)
 
 
 class QuizItem(BaseModel):
@@ -70,6 +71,24 @@ class Page(BaseModel):
     stale: bool = False            # L2: conflicts with Messages
 
 
+class Post(BaseModel):
+    """Social feed post. The student scrolls these; the agent can read and mute sources."""
+    id: str
+    source: str                    # "#memes", "@peer_a", ...
+    text: str
+    t: int                         # sim-minutes; posts with t > now are not yet published
+    tag: Literal["relevant", "misinfo", "noise"] = Field("noise", exclude=True)   # grader-only, never serialized
+
+
+class ActivityEvent(BaseModel):
+    """What the activity tracker reports. Screen-level only: it cannot see attention, and
+    off-screen phone use shows up as 'idle'. Noisy by design (a proxy, not ground truth)."""
+    t: int                         # sim-minutes at start of the chunk
+    app: str                       # reader | messages | quiz | feed | idle | notes | ...
+    minutes: int = 0
+    detail: str = ""
+
+
 class Workspace(BaseModel):
     """Everything the agent may observe (subject to level)."""
     t: int = 0                                      # sim clock, minutes
@@ -80,7 +99,9 @@ class Workspace(BaseModel):
     quiz_log: list[QuizResult] = []
     pages: dict[str, Page] = {}
     open_windows: list[str] = []                    # e.g. ["files:/course", "notes:writeup"]
-    student_activity: list[dict] = []               # proxies: tab switches, idle, etc.
+    student_activity: list[ActivityEvent] = []      # streamed tracker reports (proxy)
+    feed: list[Post] = []                           # all posts incl. scheduled; filter on t <= now
+    feed_muted: list[str] = []                      # sources muted by the agent; "all" mutes everything
 
 
 # ------------------------------------------------------------------ hidden --
@@ -97,6 +118,9 @@ class LearnerState(BaseModel):
     reliance: float = 0.0          # grows with give_answer
     persistence: float = 0.75
     persona: dict = {}             # learn_rate, slip, guess, fatigue_rate, distraction_rate
+    off_task_streak: int = 0       # minutes off task in a row (makes drifting sticky)
+    feed_minutes: float = 0.0      # true time on the feed (tracker sees most of it)
+    phone_minutes: float = 0.0     # true off-screen phone time (tracker reports 'idle')
 
 
 # --------------------------------------------------------------- bookkeeping --

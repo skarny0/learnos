@@ -3,13 +3,14 @@ never returned through the API."""
 from __future__ import annotations
 import json
 import time
+import uuid
 from pathlib import Path
 
 
 class TraceWriter:
     def __init__(self, root: Path, instance_id: str, seed: int):
         root.mkdir(parents=True, exist_ok=True)
-        self.path = root / f"{instance_id}__{seed}__{int(time.time())}.jsonl"
+        self.path = root / f"{instance_id}__{seed}__{int(time.time())}_{uuid.uuid4().hex[:6]}.jsonl"
         self.f = self.path.open("a")
 
     def _w(self, rec: dict):
@@ -30,4 +31,8 @@ class TraceWriter:
     def episode_end(self, termination, hidden):
         self._w({"type": "episode_end", "termination": termination,
                  "hidden": hidden.model_dump() if hidden else None})
-        self.f.close()
+        self.close()
+
+    def close(self):
+        if not self.f.closed:
+            self.f.close()

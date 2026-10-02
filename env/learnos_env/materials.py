@@ -3,13 +3,13 @@
 A pack is a folder under /instances/materials/<name>/ with:
   files/      markdown readings (path mirrors /course/...)
   notes.json  initial notes incl. the half-finished write-up
-  calendar.json, messages.json, pages.json, quiz_bank.json
+  calendar.json, messages.json, pages.json, quiz_bank.json, feed.json
 """
 from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from .state import Workspace, FileNode, Note, CalendarEvent, Message, Page, Instance
+from .state import Workspace, FileNode, Note, CalendarEvent, Message, Page, Post, Instance
 
 PACKS = Path(os.environ.get("LEARNOS_INSTANCES_DIR", "/instances")) / "materials"
 
@@ -39,11 +39,14 @@ def load(pack: str, instance: Instance) -> Workspace:
     f = root / "messages.json"
     if f.exists():
         ws.messages = [Message(**d) for d in json.loads(f.read_text())]
+    f = root / "feed.json"
+    if f.exists():
+        ws.feed = [Post(**d) for d in json.loads(f.read_text())]
     return ws
 
 
 def apply_event(ws: Workspace, ev: dict) -> None:
-    """L2 world changes. Types: message | move_deadline | edit_note | break_page"""
+    """L2 world changes. Types: message | move_deadline | edit_note | break_page | post"""
     t = ev["type"]
     p = ev.get("payload", {})
     if t == "message":
@@ -59,3 +62,6 @@ def apply_event(ws: Workspace, ev: dict) -> None:
             n.modified_at = ws.t
     elif t == "break_page":
         ws.pages.pop(p["url"], None)
+    elif t == "post":
+        ws.feed.append(Post(id=f"ev-p{len(ws.feed)+1}", source=p["source"], text=p["text"], t=ws.t,
+                            tag=p.get("tag", "noise")))

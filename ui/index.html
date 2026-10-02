@@ -16,7 +16,8 @@
   <div class=win><h3>Calendar</h3><pre id=cal></pre></div>
   <div class=win><h3>Messages</h3><pre id=msgs></pre></div>
   <div class=win><h3>Quiz log</h3><pre id=quiz></pre></div>
-  <div class=win><h3>Open windows</h3><pre id=open></pre></div>
+  <div class=win><h3>Feed</h3><pre id=feed></pre></div>
+  <div class=win><h3>Student activity (tracker)</h3><pre id=act></pre></div>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -28,5 +29,7 @@ ws.onmessage=e=>{const d=JSON.parse(e.data),w=d.workspace;
   $('cal').textContent=Object.values(w.calendar).sort((a,b)=>a.start-b.start).map(e=>`t=${e.start} +${e.duration}  ${e.kind}  ${e.title}`).join('\n');
   $('msgs').textContent=w.messages.map(m=>`[${m.channel}] ${m.author}: ${m.text}`).join('\n');
   $('quiz').textContent=w.quiz_log.map(q=>`${q.concept}: ${q.correct}/${q.n} (d=${q.difficulty})`).join('\n');
-  $('open').textContent=(w.open_windows||[]).join('\n');};
+  const muted=w.feed_muted||[];
+  $('feed').textContent=w.feed.filter(p=>p.t<=w.t).map(p=>`${p.source}: ${p.text}`+(muted.includes('all')||muted.includes(p.source)?'  (muted)':'')).join('\n');
+  $('act').textContent=w.student_activity.slice(-20).map(a=>`t=${a.t}  ${a.app}  ${a.minutes}m`).join('\n');};
 </script>

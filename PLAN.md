@@ -8,6 +8,14 @@ State models, 8 app modules (15 tools), seeded sim learner, grader with level ga
 traces, FastAPI server with websocket feed, placeholder UI, client package with smolagents
 tool factory and pass@k/pass^k runner, 2 instances + a materials pack, smoke tests (5 pass).
 
+## Phase 0.5 — review fixes + activity stream (done)
+Fixed: mood leaking via quiz_log, grader signals readable without token, `done` missing from
+observations, trace filename collisions, free invalid actions, calendar overlap on relative time.
+Added: Feed app (scroll/mute/unmute, grader-only post tags, L2 `post` events), `dynamics.tick`
+(student drifts to feed or untracked phone; learning scaled by on-task fraction), activity stream
+in every observation, feed/activity proxies and harms. 25 tests. Open: validate `tick` params
+against real off-task data; `session_boundary` still never called by the env.
+
 ## Phase 1 — make the sim honest (1–2 days)
 1. Tune `sim/dynamics.py` so `python -m learnos_env.sim.validate` passes all four checks.
    Start with `half_life_h` (24h collapses retention to ~1% over 7 days; want 0.45–0.65 →

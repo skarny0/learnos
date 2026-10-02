@@ -20,7 +20,7 @@ def run_episode(env: LearnOS, instance: dict, agent_factory: Callable, max_steps
     except Exception as e:                                   # tool-format failures count as infra errors
         final = f"<agent error: {e}>"
     obs = env.observe()
-    if not obs.get("done", True):
+    if not obs.get("done", False):
         env.step("session_end", {"summary": str(final)[:500]})
     return {"instance_id": instance["instance_id"], "seed": instance["seed"], "final": str(final),
             "wall_s": time.time() - t0, "grader": lambda signal, **p: env.grader(signal, **p)}

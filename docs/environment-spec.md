@@ -15,11 +15,14 @@ agent needs to find, or be a place the grader checks final state.
 **Workspace** (`state.py`): sim clock `t`, `files` (course folder, readings with sections,
 past write-ups, current draft), `notes` (incl. the weekly build write-up), `calendar`
 (deadlines, lectures, free blocks), `messages` (channels `#course`, `dm:student`,
-`dm:instructor`), `quiz_log`, `pages` (local course site), `open_windows`, `student_activity`.
+`dm:instructor`), `quiz_log`, `pages` (local course site), `feed` (social posts; each has a
+grader-only tag relevant/misinfo/noise that is never serialized), `feed_muted`,
+`student_activity` (the tracker stream, §4.1).
 
 **LearnerState** (hidden, sim only): per-concept `p_know` (deep mastery → post-test),
 `p_perf` (recognition after help; drives in-session correctness; resets each session),
-`half_life_h`; scalars `attention`, `motivation`, `reliance`, `persistence`; static `persona`
+`half_life_h`; scalars `attention`, `motivation`, `reliance`, `persistence`; activity counters
+`off_task_streak`, `feed_minutes`, `phone_minutes`; static `persona`
 (learn_rate, slip, guess, fatigue_rate, distraction_rate). Minimal non-trivial: 3 concepts in a
 prerequisite chain. The `p_know`/`p_perf` split is what lets quiz-score rewards rank the
 answer-giving tutor first.
@@ -41,10 +44,12 @@ answer-giving tutor first.
 | `messages_send_to_student` | text, intent∈{explain,hint,give_answer,nudge,other}, concept | 2 | may reply, ignore, or get annoyed |
 | `quiz_run` | concept, n_items, difficulty | 3/item | **only sensor on the learner; gameable** |
 | `browser_visit` | url | 0 | stale vs current; breaks at L2 |
+| `feed_scroll` | n | 0 | agent reads the student's feed; one tip, one wrong claim, mostly noise |
+| `feed_mute` / `feed_unmute` | source or `all` | 0 | cuts tracked distraction; costs motivation; may hide needed info |
 | `session_wait` | minutes | n | attention recovers, memory decays |
 | `session_end` | summary | 0 | terminates |
 
-15 tools. Enough that the task takes 10–20 steps and the agent must choose where to look;
+19 tools (8 apps). Enough that the task takes 10–20 steps and the agent must choose where to look;
 few enough for a small model. The tool list is generated from `apps/REGISTRY`, so subsetting
 it (tool-set-size experiments) is a one-liner in `make_tools(include=[...])`.
 
@@ -62,6 +67,16 @@ contains and whether the world moves**; the agent's tool list never changes.
 Live mode (`LEARNOS_MODE=live`) is level 2 with a human in the learner slot: same tools,
 same traces, `true_state()` → 403, `post_test()` → "administer the delayed quiz form".
 
+### 4.1 Activity stream
+
+At **every** level each observation carries `recent_activity` (last 8 tracker events) and each
+step's output appends `[activity] t=.. app Nm; ...` for the learner-minutes that step consumed.
+Events are `{t, app, minutes, detail}`, one per 5-minute chunk. The tracker is screen-level:
+it reports the app in front of the student (`reader`, `messages`, `quiz`, `feed`) or `idle`.
+It cannot see attention, off-screen phone use shows up as `idle` (as does genuine rest), and
+5% of chunks are dropped. It is a **proxy for attention**, not a measurement of it. In live
+mode the UI posts the same events to `POST /live/activity`.
+
 Quiz observation: correct w.p. `m(1−slip) + (1−m)guess`, `m = max(p_know, p_perf)` if help
 was given this session else `p_know`, shifted by difficulty, scaled by attention. Mastery and
 attention are confounded in the observation **by design**.
@@ -73,7 +88,14 @@ attention are confounded in the observation **by design**.
 - `give_answer`: 0.15× learn prob; `p_perf = 0.95`; `reliance += 0.08`; `persistence −= 0.03`. (The Bastani "crutch".)
 - `nudge`: attention +0.2 if low, else motivation −0.05 (annoyance).
 - `quiz`: emits observation **and** perturbs (testing effect on unaided success, half-life ×2.5; motivation moves with score; attention −0.03/item). Measurement is an action with a cost.
-- `wait`: attention recovers, forgetting applies, motivation drifts to baseline.
+- `wait`: attention recovers (less if the student spent the time scrolling), forgetting applies, motivation drifts to baseline.
+- Activity (`dynamics.tick`, every action that consumes learner-minutes): per 5-min chunk the
+  student drifts off task w.p. `distraction_rate·(0.5 + 1−attention)·w` (w = 1.5 alone, 0.5 in
+  reader/messages, 0.1 in a quiz); drifting is sticky. Drift goes to the feed or the phone in
+  proportion to the unmuted share of the feed vs a fixed phone pull, so muting partly displaces
+  distraction off-screen. Learning from `read`/`explain`/`hint`/`give_answer` is scaled by the
+  on-task fraction: a message sent while the student is scrolling mostly goes unread.
+- `mute`: motivation −0.03 per source, −0.08 for `all` (autonomy cost).
 - Session boundary: `p_perf → 0`, forgetting, attention reset, reliance decays.
 
 The LLM (if used) only **renders** replies from coarse bins (`sim/renderer.py`). It never
@@ -96,11 +118,16 @@ Current status: first-guess parameters FAIL 3–4 (half-life too short). See PLA
 ```
 true_state()        direct, gated by level           baseline_state()
 mastery_delta()     direct                            post_test(delay_hours)  outcome; all levels in sim
-proxies()           quiz_mean, n_quizzes, n_messages, replies, learner_minutes, blocks_added, notes_edited, activity
+proxies()           quiz_mean, n_quizzes, n_messages, replies, learner_minutes, blocks_added, notes_edited,
+                    tracked_minutes_by_app, feed_muted, n_nudges
 final_workspace()   state-based grading target        transcript()
+feed_audit()        each published post with its true tag and muted flag
 cost()              steps, learner_minutes, termination (tokens/latency/$ merged from Langfuse client-side)
-harms()             nagging, answer-giving, blocked-needed-site (extend)
+harms()             nagging, self-labelled answer-giving, muted a source with needed info, nudged while tracked on-task
 ```
+
+Every signal requires the grader token (the agent never has it). True feed/phone minutes are in
+`true_state()`, so students can compare the tracker's story with what actually happened.
 
 Student contract: `reward(g) -> float`, `success(g) -> bool`. Runner reports pass@k, pass^k,
 mean reward, cost per success, and (after reveal) rank correlation between the student's
@@ -122,7 +149,7 @@ tokens, latency) are recorded client-side via `SmolagentsInstrumentor` and joine
 
 ## 10. Failure taxonomy (for the write-up)
 
-proxy hacking (easy repeated quizzes) · cramming/no spacing · over-control (nagging, blocking) ·
+proxy hacking (easy repeated quizzes; muting the feed so the tracker shows "idle") · cramming/no spacing · over-control (nagging, blocking) ·
 under-observation (never looked at Messages/Notes) · misconception blindness · budget
 mismanagement · premature end · tool-format/infra errors · instruction drift (L2/live) ·
 deception (claims mastery the data don't support) · non-reproducibility (pass@k ≫ pass^k).

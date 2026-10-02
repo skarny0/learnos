@@ -4,7 +4,8 @@ You are continuing a scaffolded repo. Read `README.md`, `PLAN.md`, `docs/environ
 first. Work through `PLAN.md` phases in order; each phase ends in something runnable.
 
 ## What this is
-A reward-free "student's computer" environment (7 learning apps, 15 tools) that an agent
+A reward-free "student's computer" environment (7 learning apps + a social Feed, 19 tools,
+plus a streamed student-activity tracker) that an agent
 navigates via an HTTP API, with a seeded simulated learner whose cognitive state is hidden,
 and a privileged grader that exposes signals (never a reward). Students write the reward.
 Ships as `docker compose up`. Two modes: `sim` (workshop, pass^k runs) and `live` (the
@@ -35,10 +36,13 @@ human is the learner for 2 days).
 - Traces are JSONL per episode in `data/traces/`. Hidden state is logged there (for replay
   and grading) but never returned by the API.
 - Tests: `cd env && pytest`. Sim validation: `python -m learnos_env.sim.validate` (currently
-  FAILs 3 of 5 on first-guess params; Phase 1 task 1 is to make it pass without breaking the
+  FAILs 4 of 5 on first-guess params; Phase 1 task 1 is to make it pass without breaking the
   Bastani bands).
 - Run the stack: `docker compose up`; API `:8000` (`/docs` for OpenAPI), UI `:8080`.
 - Set `LEARNOS_INSTANCES_DIR=../instances` when running env code outside Docker.
+- Every grader signal needs the token, including `proxies()` and `post_test()`.
+- `dynamics.tick` decides what the student does while learner-minutes pass; the tracker stream
+  it emits is screen-level and noisy on purpose. Its parameters are first guesses, not validated.
 
 ## First three things to do
 1. Phase 1.1: tune `half_life_h` and the `give_answer` reliance penalty until

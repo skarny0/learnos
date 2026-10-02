@@ -49,9 +49,11 @@ def test_grader_levels():
 def test_no_token_no_peek():
     env = make(level=0)
     g = GraderView(env.state, token_ok=False)
+    for signal in ("true_state", "proxies", "final_workspace", "transcript", "cost", "feed_audit"):
+        with pytest.raises(Unavailable):
+            getattr(g, signal)()
     with pytest.raises(Unavailable):
-        g.true_state()
-    g.proxies()                            # proxies are always allowed
+        g.post_test(48)                    # the agent must not be able to read its own outcome
 
 
 def test_level2_event_fires():

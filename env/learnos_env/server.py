@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 from .env import LearnOSEnv
 from .grader import GraderView, Unavailable
-from .state import Instance
+from .state import Instance, QuizResult, ActivityEvent
 from .apps import tool_specs
 
 MODE = os.environ.get("LEARNOS_MODE", "sim")
@@ -67,6 +67,8 @@ async def reset(instance: Instance):
 async def step(req: StepReq):
     if not env.state:
         raise HTTPException(400, "reset first")
+    if env.state.done:
+        raise HTTPException(409, f"episode is done ({env.state.termination}); reset first")
     out = env.step(req.action, req.args)
     await _broadcast()
     return out
@@ -112,18 +114,24 @@ async def ws(websocket: WebSocket):
 # -------------------------------------------------------------------- live --
 # In live mode the human is the learner. The UI posts what they do; these land in Workspace
 # exactly where the sim would have put them, so the agent code does not change.
-@app.post("/live/quiz_answer")
-async def live_quiz_answer(payload: dict):
+def _live_state():
     if MODE != "live":
         raise HTTPException(400, "live mode only")
-    env.state.workspace.quiz_log.append(payload)   # TODO: validate
+    if not env.state:
+        raise HTTPException(400, "reset first")
+    return env.state
+
+
+@app.post("/live/quiz_answer")
+async def live_quiz_answer(result: QuizResult):
+    _live_state().workspace.quiz_log.append(result)
     await _broadcast()
     return {"ok": True}
 
 
 @app.post("/live/activity")
-async def live_activity(payload: dict):
-    if MODE != "live":
-        raise HTTPException(400, "live mode only")
-    env.state.workspace.student_activity.append(payload)
+async def live_activity(event: ActivityEvent):
+    """The live UI's tracker posts what the human is doing; same schema the sim streams."""
+    _live_state().workspace.student_activity.append(event)
+    await _broadcast()
     return {"ok": True}

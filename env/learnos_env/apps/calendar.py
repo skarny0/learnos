@@ -20,11 +20,12 @@ def list_events(state: EpisodeState) -> ActionResult:
          "concept": {**S, "description": "Concept to study"}})
 def add_block(state: EpisodeState, title: str, start: int, duration: int, concept: str) -> ActionResult:
     ws = state.workspace
+    t0 = ws.t + start                                   # `start` is relative; calendar stores absolute
     for e in ws.calendar.values():
-        if start < e.start + e.duration and e.start < start + duration:
+        if t0 < e.start + e.duration and e.start < t0 + duration:
             return ActionResult(output=f"Overlaps with {e.id} ({e.title}).")
     eid = f"blk{len(ws.calendar)+1}"
-    ws.calendar[eid] = CalendarEvent(id=eid, title=title, start=ws.t + start, duration=duration, kind="study_block", note=concept)
+    ws.calendar[eid] = CalendarEvent(id=eid, title=title, start=t0, duration=duration, kind="study_block", note=concept)
     return ActionResult(output=f"Added {eid}.", learner_effect={"kind": "schedule", "concept": concept, "dt": start},
                         events=[{"type": "calendar_add", "id": eid}])
 

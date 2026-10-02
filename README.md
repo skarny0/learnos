@@ -1,7 +1,8 @@
 # LearnOS — a reward-free learning workspace for agents
 
 A simulated "student's computer" limited to learning apps (Files, Reader, Notes,
-Calendar, Messages, Quiz, Browser). An agent navigates it through a tool API to
+Calendar, Messages, Quiz, Browser) plus a social Feed the student gets distracted by. A tracker
+streams what the student is doing (reading, scrolling, idle) into every observation. An agent navigates it through a tool API to
 help a (simulated or real) student. The environment ships **without a reward
 function**: students define success themselves and grade against the final
 workspace state, plus an optional hidden-learner layer.

@@ -9,7 +9,7 @@ generated from this registry, so the registry *is* the action space.
 Test for whether an app belongs: it must hold information the agent needs to
 find, or be a place the grader checks final state. Nothing else.
 """
-from . import files, reader, notes, calendar, messages, quiz, browser, session
+from . import files, reader, notes, calendar, messages, quiz, browser, feed, session
 
 REGISTRY = {
     "files": files.ACTIONS,
@@ -19,6 +19,7 @@ REGISTRY = {
     "messages": messages.ACTIONS,
     "quiz": quiz.ACTIONS,
     "browser": browser.ACTIONS,
+    "feed": feed.ACTIONS,
     "session": session.ACTIONS,
 }
 
