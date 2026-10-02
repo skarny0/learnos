@@ -1,6 +1,7 @@
 """Build smolagents Tool classes from the env's /tools registry. One Tool per action.
 The tool list IS the action space; students can subset it to study tool-set-size effects."""
 from __future__ import annotations
+import inspect
 from smolagents import Tool
 from .client import LearnOS
 
@@ -20,18 +21,21 @@ def _make_tool(client: LearnOS, spec: dict) -> Tool:
     inputs = {k: {"type": _TYPE.get(v["type"], "string"), "description": v.get("description", "")}
               for k, v in spec["inputs"].items()}
 
-    class _T(Tool):
-        name = spec["name"]
-        description = spec["description"]
-        output_type = "string"
+    # smolagents validates that forward()'s parameters match `inputs`, and CodeAgent may call
+    # tools positionally, so give forward a real signature built from the spec.
+    params = [inspect.Parameter(k, inspect.Parameter.POSITIONAL_OR_KEYWORD) for k in inputs]
+    sig = inspect.Signature(params)
 
-        def __init__(self):
-            super().__init__()
-            self.inputs = inputs
+    def forward(self, *args, **kwargs) -> str:
+        args_dict = sig.bind(*args, **kwargs).arguments
+        out = client.step(self.name, dict(args_dict))
+        return out["output"] + ("\n[episode done]" if out.get("done") else "")
 
-        def forward(self, **kwargs) -> str:
-            out = client.step(self.name, kwargs)
-            return out["output"] + ("\n[episode done]" if out.get("done") else "")
+    forward.__signature__ = inspect.Signature(
+        [inspect.Parameter("self", inspect.Parameter.POSITIONAL_OR_KEYWORD), *params])
 
-    _T.__name__ = f"Tool_{spec['name']}"
+    _T = type(f"Tool_{spec['name']}", (Tool,), {
+        "name": spec["name"], "description": spec["description"],
+        "inputs": inputs, "output_type": "string", "forward": forward,
+    })
     return _T()
