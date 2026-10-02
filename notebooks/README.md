@@ -7,4 +7,7 @@
 05_validate_sim.ipynb  Run learnos_env.sim.validate. Discuss what passed, what failed, why you'd trust it.
 06_live.ipynb          Switch container to LEARNOS_MODE=live; 2-day ABAB protocol; pre-register reward.
 
-Build these from docs/workshop-flow.md once the env is stable.
+part5_observability.ipynb  BUILT. Workshop Part 5: Langfuse + env traces linked by episode_id; 5-run trace
+                           inspection with an 'observation' failure category; config comparison table.
+
+Build the rest from docs/workshop-flow.md once the env is stable.

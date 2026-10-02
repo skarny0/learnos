@@ -87,13 +87,16 @@ def observe():
 
 # ------------------------------------------------------------------ grader --
 @app.get("/grader/{signal}")
-def grader(signal: str, delay_hours: float = 0.0, x_grader_token: str | None = Header(default=None)):
+def grader(signal: str, delay_hours: float = 0.0, episode_id: str | None = None,
+           x_grader_token: str | None = Header(default=None)):
     if not env.state:
         raise HTTPException(400, "reset first")
-    g = GraderView(env.state, token_ok=(x_grader_token == TOKEN))
+    g = GraderView(env.state, token_ok=(x_grader_token == TOKEN), trace_path=env.trace.path)
     try:
         if signal == "post_test":
             return {"post_test": g.post_test(delay_hours)}
+        if signal == "env_trace":
+            return g.env_trace(episode_id)
         fn = getattr(g, signal, None)
         if not fn or signal.startswith("_"):
             raise HTTPException(404, f"no signal {signal}")

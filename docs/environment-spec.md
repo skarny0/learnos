@@ -122,6 +122,7 @@ proxies()           quiz_mean, n_quizzes, n_messages, replies, learner_minutes, 
                     tracked_minutes_by_app, feed_muted, n_nudges
 final_workspace()   state-based grading target        transcript()
 feed_audit()        each published post with its true tag and muted flag
+env_trace(episode_id?) env-side trace of any episode; hidden state only where true_state() is allowed
 cost()              steps, learner_minutes, termination (tokens/latency/$ merged from Langfuse client-side)
 harms()             nagging, self-labelled answer-giving, muted a source with needed info, nudged while tracked on-task
 ```
@@ -142,7 +143,10 @@ profile for an instance set. Materials packs under `instances/materials/<pack>/`
 ## 9. Trace schema (`trace.py`, JSONL per episode)
 
 `episode_start{instance, hidden}` · `step{step, action, args, output, t, hidden, events}` ·
-`world_event{...}` · `episode_end{termination, hidden}`. Hidden state is logged for replay and
+`world_event{...}` · `episode_end{termination, hidden}`. Each episode has an `episode_id` (returned in every
+observation, names the trace file). The client wraps each run in an OpenTelemetry span carrying Langfuse
+trace attributes (`langfuse.trace.name`, `langfuse.session.id` = config, `langfuse.trace.metadata.episode_id`),
+so a Langfuse trace and its env trace (`/grader/env_trace?episode_id=`) can be read side by side. Hidden state is logged for replay and
 the grader but never returned through `/observe` or `/step`. Langfuse spans (model calls,
 tokens, latency) are recorded client-side via `SmolagentsInstrumentor` and joined on
 `instance_id+seed`.

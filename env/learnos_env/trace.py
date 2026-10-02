@@ -10,7 +10,9 @@ from pathlib import Path
 class TraceWriter:
     def __init__(self, root: Path, instance_id: str, seed: int):
         root.mkdir(parents=True, exist_ok=True)
-        self.path = root / f"{instance_id}__{seed}__{int(time.time())}_{uuid.uuid4().hex[:6]}.jsonl"
+        # episode_id names the file and is returned by /reset, so client-side traces (Langfuse) can link here
+        self.episode_id = f"{instance_id}__{seed}__{int(time.time())}_{uuid.uuid4().hex[:6]}"
+        self.path = root / f"{self.episode_id}.jsonl"
         self.f = self.path.open("a")
 
     def _w(self, rec: dict):
@@ -18,7 +20,7 @@ class TraceWriter:
         self.f.flush()
 
     def episode_start(self, instance, hidden):
-        self._w({"type": "episode_start", "instance": instance.model_dump(),
+        self._w({"type": "episode_start", "episode_id": self.episode_id, "instance": instance.model_dump(),
                  "hidden": hidden.model_dump() if hidden else None})
 
     def step(self, **kw):

@@ -4,7 +4,10 @@ Students write:   def reward(g: GraderView) -> float   and   def success(g) -> b
 and run them through client.eval.run_many(...). Nothing here says what is good.
 """
 from __future__ import annotations
+import json
 import random
+import re
+from pathlib import Path
 from .state import EpisodeState
 from .sim import dynamics
 
@@ -14,9 +17,10 @@ class Unavailable(Exception):
 
 
 class GraderView:
-    def __init__(self, state: EpisodeState, token_ok: bool):
+    def __init__(self, state: EpisodeState, token_ok: bool, trace_path: Path | None = None):
         self._s = state
         self._ok = token_ok
+        self._trace_path = Path(trace_path) if trace_path else None
 
     def _token(self, what: str):
         """Every signal sits behind the token: the agent must not be able to read its own grade
@@ -93,6 +97,28 @@ class GraderView:
         return {"posts": [{**p.model_dump(), "tag": p.tag, "muted": "all" in muted or p.source in muted}
                           for p in ws.feed if p.t <= ws.t],
                 "muted": sorted(muted)}
+
+    def env_trace(self, episode_id: str | None = None) -> list[dict]:
+        """The environment-side trace of an episode (default: the current one), one record per step:
+        what the agent did, what it got back, sim time, tracked activity, world events. Pairs with the
+        agent-side trace in Langfuse via episode_id. Hidden learner state is included only where
+        true_state() would have been allowed: level 0, or level 1 once the episode has ended."""
+        self._token("env_trace")
+        path = self._trace_path
+        if episode_id:
+            if not re.fullmatch(r"[\w.-]+", episode_id) or not path:
+                raise Unavailable(f"env_trace: bad episode_id {episode_id!r}")
+            path = path.parent / f"{episode_id}.jsonl"
+        if not path or not path.exists():
+            raise Unavailable(f"env_trace: no trace for {episode_id or 'this episode'}")
+        recs = [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+        level = recs[0]["instance"]["level"]
+        ended = recs[-1]["type"] == "episode_end"
+        reveal = self._s.mode == "sim" and (level == 0 or (level == 1 and ended))
+        if not reveal:
+            for r in recs:
+                r.pop("hidden", None)
+        return recs
 
     def cost(self) -> dict:
         self._token("cost")

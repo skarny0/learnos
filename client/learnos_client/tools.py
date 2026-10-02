@@ -34,7 +34,7 @@ def _make_tool(client: LearnOS, spec: dict) -> Tool:
     forward.__signature__ = inspect.Signature(
         [inspect.Parameter("self", inspect.Parameter.POSITIONAL_OR_KEYWORD), *params])
 
-    _T = type(f"Tool_{spec['name']}", (Tool,), {
+    _T = type(spec["name"], (Tool,), {                  # class name = span name in Langfuse
         "name": spec["name"], "description": spec["description"],
         "inputs": inputs, "output_type": "string", "forward": forward,
     })

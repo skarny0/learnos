@@ -42,3 +42,18 @@ def test_positional_and_keyword_calls_reach_step():
     assert c.calls == [("files_ls", {"path": "/course"}),
                        ("quiz_run", {"concept": "pomdp", "n_items": 2, "difficulty": 0.3})]
     assert t["session_end"]("bye").endswith("[episode done]")
+
+
+def test_summarize_and_trace_table():
+    from learnos_client import summarize, trace_table
+    run = {"ok": True, "reward": 0.5, "wall_s": 2.0, "input_tokens": 100, "output_tokens": 20, "model_calls": 4,
+           "agent_error": None, "step_errors": 0, "cost": {"agent_steps": 5, "learner_minutes": 30}}
+    row = summarize({"config": "a", "k": 1, "pass@k": 1.0, "pass^k": 1.0, "rows": [{"runs": [run]}]})
+    assert row["success_rate"] == 1.0 and row["mean_tokens"] == 120 and row["pass^1"] == 1.0
+    recs = [{"type": "episode_start"},
+            {"type": "step", "step": 1, "action": "session_wait", "args": {"minutes": 10}, "t": 10,
+             "output": "Waited 10 minutes.\n[activity] t=0 feed 5m", "activity": [{"app": "feed", "minutes": 5}]}]
+    rows = trace_table(recs)
+    rows = rows.reset_index().to_dict("records") if hasattr(rows, "reset_index") else rows
+    assert rows[0]["activity"] == "feed 5m" and rows[0]["output"] == "Waited 10 minutes."
+    assert "attention" not in rows[0]                    # hidden columns only when revealed

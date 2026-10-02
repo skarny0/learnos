@@ -31,3 +31,7 @@ class LearnOS:
             raise PermissionError(r.json()["detail"])
         r.raise_for_status()
         return r.json()
+
+    def env_trace(self, episode_id: str | None = None) -> list[dict]:
+        """Env-side trace of an episode (default: current). Pair with Langfuse via episode_id."""
+        return self.grader("env_trace", **({"episode_id": episode_id} if episode_id else {}))

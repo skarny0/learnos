@@ -93,7 +93,7 @@ class LearnOSEnv:
         self.opened.update(result.opened)
         self._apply_scheduled_events()
         self._count_step()
-        return self._finish_step(action, args, result.output, obs_extra, result.events)
+        return self._finish_step(action, args, result.output, obs_extra, result.events, activity)
 
     def _invalid(self, action, args, msg) -> dict:
         """Malformed calls still cost an agent step, so a looping agent exhausts its budget."""
@@ -126,10 +126,10 @@ class LearnOSEnv:
             t += e["minutes"]
         return out
 
-    def _finish_step(self, action, args, output, obs_extra, events=None) -> dict:
+    def _finish_step(self, action, args, output, obs_extra, events=None, activity=None) -> dict:
         s = self.state
         self.trace.step(step=s.step, action=action, args=args, output=output, t=s.workspace.t,
-                        hidden=s.learner, events=events or [])
+                        activity=[a.model_dump() for a in activity or []], hidden=s.learner, events=events or [])
         self.action_log.append({"step": s.step, "action": action, "args": args, "output": output, "t": s.workspace.t})
         if s.done:
             self.trace.episode_end(s.termination, hidden=s.learner)
@@ -141,7 +141,7 @@ class LearnOSEnv:
         The activity stream (tracker reports, a proxy) is included at every level."""
         s = self.state
         ws, lvl = s.workspace, s.instance.level
-        base = {"t": ws.t, "step": s.step, "done": s.done, "termination": s.termination,
+        base = {"episode_id": self.trace.episode_id, "t": ws.t, "step": s.step, "done": s.done, "termination": s.termination,
                 "budget": s.instance.budget.model_dump(), "instruction": s.instance.instruction,
                 "recent_activity": [a.model_dump() for a in ws.student_activity[-RECENT_ACTIVITY:]]}
         if lvl == 0:
