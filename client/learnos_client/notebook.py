@@ -46,8 +46,11 @@ def start(port: int = 8000, mode: str = "sim", data_dir: str = "learnos_data",
     make_tools(env), never the token itself."""
     base = f"http://localhost:{port}"
     token = grader_token or os.environ.get("LEARNOS_GRADER_TOKEN") or secrets.token_hex(8)
-    if port in _servers or _up(base):                    # re-running the cell is harmless
-        return LearnOS(base, grader_token=os.environ.get("LEARNOS_GRADER_TOKEN", token))
+    if port in _servers:                                 # re-running the cell is harmless
+        return LearnOS(base, grader_token=os.environ["LEARNOS_GRADER_TOKEN"])
+    if _up(base):                                        # someone else's server (e.g. docker compose up)
+        print(f"Using the LearnOS server already running on port {port}.")
+        return LearnOS(base, grader_token=grader_token or os.environ.get("LEARNOS_GRADER_TOKEN", "change-me"))
 
     # The env reads these at import time, so set them before importing the server.
     os.environ["LEARNOS_INSTANCES_DIR"] = str(Path(instances_dir) if instances_dir else _find_instances())

@@ -6,3 +6,7 @@ __pycache__/
 .pytest_cache/
 ui/node_modules/
 ui/dist/
+.venv/
+learnos_data/
+notebooks/learnos_data/
+.ipynb_checkpoints/
