@@ -8,7 +8,7 @@ write or revise their own definition.
 ```
 M0 agent ─▶ M1 two traces ─▶ M2 own reward ─▶ M3 hidden + moving world ─▶ M4 many learners
                                                                               │
-                         M7 in the wild ◀── M6 classroom ◀── M5 new cognitive brick
+                                        M6 in the wild ◀── M5 new cognitive brick
 ```
 
 What students carry forward, growing each module:
@@ -79,17 +79,7 @@ by `episode_id`).
 - **Carries forward:** a validated brick (shared with the class); reward v3.
 - **Status:** needs the brick refactor.
 
-## M6 — The classroom (tabled)
-- **Seed from M4–M5:** one tutor per student does not scale; real teachers share their time.
-- **Environment:** one teacher agent, N students of mixed types in one episode; per-student activity streams
-  and DMs; the budget is the teacher's time. One-on-one becomes a class of size 1, so all earlier tools still work.
-- **Students build:** a teacher agent that allocates attention across students; a class-level reward
-  (mean? worst student? equity across types?).
-- **Observability skill:** traces become per-student timelines inside one run; find who got neglected and why.
-- **Carries forward:** teacher agent; a stance on what "good for a class" means.
-- **Status:** tabled for now (2026-10-01). Open question if revived: do students affect each other?
-
-## M7 — In the wild
+## M6 — In the wild
 - **Seed from everything:** all of this was simulated.
 - **Environment:** live mode, where the human is the student; same tools, same traces, no hidden state.
 - **Students build:** pre-registered reward, ABAB protocol (see `workshop-flow.md`).
@@ -112,13 +102,14 @@ modules, so later sections can query back to earlier traces.
 | Part 3: build the agent | M0 |
 | Part 5: observability (`notebooks/part5_observability.ipynb`) | M1 |
 | Reward spec + hill-climbing | M2 |
-| Later sections | M3–M7 |
+| Later sections | M3–M6 |
 
 Because it runs in Colab, LearnOS must start **inside the Colab VM** (Colab cannot reach a student's Docker).
 
 ## How this maps to the current course
 The 120-minute workshop in `workshop-flow.md` is **M1 + M2** compressed (with cached trajectories standing in
-for M0), and its 2-day take-home is **M7**. M3–M6 are extensions or later weeks.
+for M0), and its 2-day take-home is **M6**. M3–M5 are extensions or later weeks.
+Ideas not on the current path (e.g. a classroom of many students) live in `future-ideas.md`.
 
 ## What the environment needs, in curriculum order
 | For | Build | Status |
@@ -129,5 +120,4 @@ for M0), and its 2-day take-home is **M7**. M3–M6 are extensions or later week
 | M4, M5 | construct ("brick") refactor of the learner model | todo |
 | M4 | learner-type library + sweep runner | todo |
 | M5 | critical-thinking brick as the worked example | todo |
-| M6 | multi-student episodes (`student` arg, defaulting to the only one) | tabled |
-| M7 | live-mode UI forms, activity reporting | partial |
+| M6 | live-mode UI forms, activity reporting | partial |
