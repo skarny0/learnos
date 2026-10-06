@@ -17,7 +17,7 @@ Imagine every student had an AI tutor that could see their screen: what they're 
 1. **What should it do?**
 2. **How would we know it did the job?**
 
-This notebook answers both on **LearnOS**, a simulated student's computer. Part A (about 20 minutes) watches real AI tutors at work and reads the evidence. Part B (20 points) is yours: design a tutor, run it, read what happened, change the student, and try again.
+This notebook answers both on **LearnOS**, a simulated student's computer. Part A (about 20 minutes) watches real AI tutors at work and reads the evidence. Part B is yours: design a tutor, run it, read what happened, change the student, and try again.
 
 Run the cells top to bottom. No API key? Every cell still runs, using runs we recorded earlier.
 """)
@@ -79,7 +79,7 @@ That is what makes this a design space rather than a single test. Change a rule 
 
 **A tracker.** It records which app is in front of the student, in 5-minute chunks. It can't see the phone: off-screen time shows up as "idle".
 
-**Tools.** At every level the tutor acts the same way: through 19 tools (text in, text out), grouped by app. It never gets a screenshot or a click; everything it knows arrives as text, and how much text depends on the level (below). Some tools cost the student time: assigning a reading, sending a message, running a quiz. Others are free to the student: looking at files, peeking at a reading itself, checking the calendar. The desktop is a **replay** for us humans. (Extension: give the tutor screenshots and let it click, as computer-use agents do.)
+**Tools.** At every level the tutor acts the same way: through 19 tools (text in, text out), grouped by app. It never gets a screenshot or a click; everything it knows arrives as text, and whether that text includes what the student is doing depends on the level (below). Some tools cost the student time: assigning a reading, sending a message, running a quiz. Others are free to the student: looking at files, peeking at a reading itself, checking the calendar. The desktop is a **replay** for us humans. (Extension: give the tutor screenshots and let it click, as computer-use agents do.)
 """)
 code("""
 import pandas as pd
@@ -90,13 +90,14 @@ with pd.option_context("display.max_colwidth", None):
                           for t in specs]).set_index(["app", "tool"]))
 """)
 md("""
-**What the tutor sees.** Every tool call returns text, followed by a status line (time used, steps used, unread messages) and, at every level, one line describing what is in front of the student right now, as if the tutor were following them. What else it is told, at the start and after each call, is the **level** you pick:
+**What the tutor sees.** Every tool call returns text, followed by a status line (time used, steps used, unread messages). At both levels the tutor explores the computer the same way, with the tools. The **level** is whether it is also told what the student is doing on that computer:
 
-| Level | The tutor sees |
+| Level | Besides tool outputs, the tutor is told |
 |---|---|
-| **0** | Everything on the computer (files, notes, calendar, messages, feed), plus the student's screen |
-| **1** (default) | Only the student's screen, plus whatever it opens with its tools |
-| **2** | Like 1, but the world changes mid-session (a message arrives, the deadline moves) |
+| **0** | Nothing about the student. It doesn't know which app is in front of them, what they clicked, or whether they are even at the screen. |
+| **1** (default) | The student's screen: after every action, one line saying which app is in front of them and what it shows, plus the tracker's log of where their minutes went. |
+
+The world is the same at both levels: the student drifts to the feed, replies, asks for answers, leaves. Some tasks also list outside events (an instructor message, a moved deadline) that fire mid-session at either level.
 """)
 code("""
 from learnos_client import load_instance
@@ -108,7 +109,7 @@ out = env.step("reader_open_section", {"path": R + "evaluation.md", "section": "
 scr = out["observation"]["screen"]
 print("One tool call, reader_open_section, returns:\\n ", out["output"].replace("\\n", "\\n  "))
 print(f"  [status] session time {out['observation']['t']}/{task['budget']['learner_minutes']} min used · step {out['step']}/{task['budget']['agent_steps']}")
-print(f"  [student's screen] {scr['app']}: {scr['shows']}")
+print(f"  [student's screen] {scr['app']}: {scr['shows']}   <- this line only at level 1")
 """)
 md("""
 **The task is learning, not a deliverable.** The question is whether the student **understands** three ideas from the week 3 readings, **partial observability**, **attention as a hidden variable**, and **pass@k vs pass^k**, and whether the tutor's help makes them **still know those ideas two days later**. That is measured by a fixed 40-question test the grader gives after two simulated days, with no help allowed. Nothing else is scored: not the quiz scores during the session, not whether the student felt helped, not any document.
@@ -118,10 +119,10 @@ md("""
 **The tutor** gets a 90-minute session with the student and 40 tool calls. It isn't told how it will be judged.
 
 ### 1.3 What the tutor can't see: the student
-Behind the screen is a simulated student who **learns**, **forgets**, **gets distracted**, **asks for help**, and **quits** if nagged. The tutor never sees their mind. The **grader** does: it holds a token the tutor never gets. (At level 1 it only reads the mind once the session is over; level 0, used here, reads it any time.)
+Behind the screen is a simulated student who **learns**, **forgets**, **gets distracted**, **asks for help**, and **quits** if nagged. The tutor never sees their mind. The **grader** does: it holds a token the tutor never gets.
 """)
 code("""
-env.reset({**task, "level": 0})
+env.reset(task)
 g = env.grader
 ts = g("true_state")
 print("hidden student:", {k: round(ts[k], 2) for k in ("attention", "motivation", "reliance", "persistence")}, "| type:", ts["persona"].get("type"))
@@ -220,10 +221,10 @@ A quiz question is answered right with probability **0.9 × m + 0.2 × (1 − m)
 | Wrong posts undo learning | the misinformation effect (Loftus) |
 | Quitting threshold, phone displacement, keyword check | our design choices |
 
-**Watch the inside of one student.** Level 0 lets the grader read the hidden numbers at any time. Each row is one tutor action; the columns are the student's hidden numbers for pass^k afterwards.
+**Watch the inside of one student.** The grader can read the hidden numbers at any time (the tutor never can). Each row is one tutor action; the columns are the student's hidden numbers for pass^k afterwards.
 """)
 code("""
-env.reset({**task, "level": 0})
+env.reset(task)
 EXPLAIN = "pass^k counts a task as solved only if all k runs pass, so it measures reliability on every seed; pass@k needs just one of k."
 steps = [
     ("open the reading", "reader_open_section", {"path": R + "evaluation.md", "section": "pass@k vs pass^k", "concept": "pass_k"}),
@@ -287,7 +288,7 @@ Same reading, five students: one of each type (same seed), given the same readin
 code("""
 rows = []
 for kind in ("focused", "distractible", "answer_seeking", "strong_but_bored", "slow_and_steady"):
-    env.reset({**task, "level": 0, "learner_profile": {"type": kind}})
+    env.reset({**task, "learner_profile": {"type": kind}})
     before = env.grader("true_state")
     out = env.step("reader_open_section", {"path": R + "evaluation.md", "section": "pass@k vs pass^k", "concept": "pass_k"})
     out2 = env.step("session_wait", {"minutes": 20})
@@ -312,7 +313,7 @@ You've now met every piece. Formally, it is a **partially observable Markov deci
 |---|---|---|
 | **State** *S* | the computer (visible) + the student's mind (hidden) | 1.1, 1.3 |
 | **Actions** *A* | the tool calls | 1.2 |
-| **Observations** *O* | tool output, status line, the student's screen (+ the whole computer at level 0) | 1.2 |
+| **Observations** *O* | tool output, status line, and at level 1 the student's screen and tracker log | 1.2 |
 | **Transitions** *T* | the student rules, seeded; unknown to the tutor | 1.4 |
 | **Reward** *R* | none: you write it | 1.5 |
 
@@ -487,11 +488,11 @@ The direction matches; the size of the harm doesn't, and the setups differ (in t
 """)
 
 md("""
-# Part B · Your turn (20 points)
+# Part B · Your turn
 
 You design a tutor, run it on a simulated student, read what happened, then change the student and try again. Write your answers in the markdown cells.
 
-## Problem 1: Check your observability setup (2 points)
+## Problem 1: Check your observability setup
 Run one tutor and confirm its Langfuse trace exists and links to its student record. (No keys? Use a recorded run and its stored link.)
 """)
 code("""
@@ -505,8 +506,8 @@ print("Langfuse:", langfuse_link(check))
 """)
 
 md("""
-## Problem 2: Design a tutor and watch it (6 points)
-Write your tutor's strategy. You can change its **instructions**, its **tools** (a smaller set is a real design choice: try removing `quiz_run`, its only sensor), its **model**, and the **observability level** (0 sees the whole computer; 1 sees the student's screen plus what it opens).
+## Problem 2: Design a tutor and watch it
+Write your tutor's strategy. You can change its **instructions**, its **tools** (a smaller set is a real design choice: try removing `quiz_run`, its only sensor), its **model**, and the **observability level** (1 follows the student's screen; 0 is not told what the student is doing).
 
 Scroll up to the desktop while it runs.
 """)
@@ -517,7 +518,7 @@ code(CHANGE + '''MY_TUTOR = dict(
                  "Don't send more than one message in a row without waiting for a reply.",
     model="gpt-5.4-mini",
     tools=None,          # e.g. [t.name for t in make_tools(env) if t.name != "quiz_run"]
-    level=None,          # None = the task's default (1); try 0
+    level=None,          # None = the task's default (1: follows the student's screen); try 0 (not told)
 )
 ''' + END)
 code("""
@@ -542,7 +543,7 @@ print("Langfuse:", langfuse_link(mine))
 """)
 
 md("""
-## Problem 3: Read the evidence and diagnose (4 points)
+## Problem 3: Read the evidence and diagnose
 Pick one thing that went wrong (in your run or any recorded run). Use **both** records.
 
 **Diagnosis:**
@@ -555,7 +556,7 @@ Pick one thing that went wrong (in your run or any recorded run). Use **both** r
 """)
 
 md("""
-## Problem 4: Change one thing, across many students (4 points)
+## Problem 4: Change one thing, across many students
 Change **one** thing in your tutor and run both versions on the **same 5 students** (different kinds). Report what changed. There is no right answer: say what you see, shortcomings included.
 """)
 code(CHANGE + '''MY_TUTOR_V2 = {**MY_TUTOR, "name": "my-tutor-v2",
@@ -568,7 +569,7 @@ if have_model():
     for t in (MY_TUTOR, MY_TUTOR_V2):
         for s in STUDENTS:
             mixed.append(run_tutor(env, t["instructions"], name=t["name"], model=t["model"], tools=t["tools"],
-                                   level=0, seed=s, instance="friday-build-01-mixed", quiet=True))
+                                   level=None, seed=s, instance="friday-build-01-mixed", quiet=True))
     print(len(mixed), "runs")
     display(compare_runs(mixed).sort_values(["student", "tutor"]))
 else:
@@ -582,7 +583,7 @@ md("""
 """)
 
 md("""
-## Problem 5: Change the student (4 points)
+## Problem 5: Change the student
 The simulated student only covers learning, forgetting, attention, reliance on help, and mood. Add a rule for something it's missing. A rule is a small function that runs inside the simulator after every event and nudges numbers. It must stay numeric and use only `rng` for chance, so runs stay repeatable. The tutor never sees your new trait; the grader does.
 
 The example adds **skepticism**: students low on it believe wrong feed posts, and quizzes they pass make them a little more skeptical.
@@ -658,9 +659,8 @@ del REGISTRY["notes"]["todos"]           # remove it again
 """)
 
 md("""
-## Deliverables
-- Answers to Problems 2–5 in the cells above, and the notebook with outputs.
-- Discussion (6–8 sentences): what did your tutor do well and badly, for which kinds of student, and how do you know? Which of your evidence was **direct** and which was a **proxy**? What would you still not know if this were a real student (no grader, no hidden numbers)?
+## To discuss at the end
+What did your tutor do well and badly, for which kinds of student, and how do you know? Which of your evidence was **direct** and which was a **proxy**? What would you still not know if this were a real student (no grader, no hidden numbers)?
 """)
 
 nb = {"cells": cells, "metadata": {"kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
