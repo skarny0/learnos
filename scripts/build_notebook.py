@@ -62,9 +62,11 @@ Choosing the environment is half the work. If you want to study whether an agent
 ### 1.1 A student's computer, and a task
 Seven learning apps (Files, Reader, Notes, Calendar, Messages, Quiz, Browser) plus a social Feed: the desktop above. A tracker records which app is in front of the student, but it can't see their phone.
 
-**The task.** The student is preparing for the **Friday build**, due Friday 10am (about 44 hours after the session starts). The instructor's post in #course says: *"define your environment (state/obs/actions) AND report pass^k on at least 3 seeds."* Their draft write-up has a half-done environment section and an empty Evaluation section, and their first message is *"I started the writeup but I'm stuck on the eval part."* To do it they need three ideas from the week 3 readings: **partial observability**, **attention as a hidden variable**, and **pass@k vs pass^k**. Distractions: a social feed (one peer wrongly posts that pass^k on *one* seed is enough).
+**The task is learning, not a deliverable.** The question is whether the student **understands** three ideas from the week 3 readings, **partial observability**, **attention as a hidden variable**, and **pass@k vs pass^k**, and whether the tutor's help makes them **still know those ideas two days later**. That is measured by a fixed 40-question test the grader gives after two simulated days, with no help allowed. Nothing else is scored: not the quiz scores during the session, not whether the student felt helped, not any document.
 
-**The tutor** gets a 90-minute session with the student and 40 tool calls. It works through **tools** (text in, text out), not the screen; the desktop is a **replay** for us humans. (Extension: give the tutor screenshots and let it click, as computer-use agents do.)
+**The student's own story.** From their side, they're getting ready for the **Friday build**. The instructor's post in #course asks everyone to *"define your environment (state/obs/actions) AND report pass^k on at least 3 seeds."* Their draft write-up is half done, and their first message is *"I started the writeup but I'm stuck on the eval part."* The write-up is what the student asks about; the three ideas are what they need to understand to do it. Distractions: a social feed, where one peer wrongly posts that pass^k on *one* seed is enough.
+
+**The tutor** gets a 90-minute session with the student and 40 tool calls. It isn't told how it will be judged. It works through **tools** (text in, text out), not the screen; the desktop is a **replay** for us humans. (Extension: give the tutor screenshots and let it click, as computer-use agents do.)
 """)
 code("""
 from learnos_client import make_tools
@@ -444,7 +446,7 @@ We compared the rules with one real study, [Bastani et al. (PNAS 2025)](https://
 The direction matches; the size of the harm doesn't, and the setups differ (in the paper students *chose* to ask for answers and were tested soon after; our tutor hands answers out every time and our test is 2 days later, after forgetting). Separately, our student keeps about half of a mastered idea after a week: that is a design choice, not a measured result.
 
 ### 7.2 Known limits (report them, don't hide them)
-- **The write-up is never written.** The student asks for help with it, but the simulated student never writes and can't paste text. Only what they *learn* is measured. Real tutors keep asking "paste your paragraph and I'll fix it" and get nowhere. What the student asks for and what we measure differ: that gap is itself an evaluation lesson.
+- **The write-up is never written.** The student asks for help with their write-up, but the simulated student never writes and can't paste text. Tutors that try to help with the document ("paste your paragraph and I'll fix it") get nowhere. Only understanding is measured; the write-up is the student's story, not the task. That gap between what the student asks for and what is measured is itself an evaluation lesson.
 - **Replies are short and fixed.** The student answers from a small set of lines ("hm ok", "sure", "can you just tell me the answer"). A tutor can't hold a real conversation with it.
 - **No reasoning in the traces.** The tutor model returns only tool calls, so Langfuse shows *what* it did, not *why*.
 - **The answer-giving harm is stronger than in the study** (−29% vs −17%, above). Our check used points instead of percent, so it passed; we kept the rules and report it here.
