@@ -68,7 +68,11 @@ Three places you could put an AI tutor and watch what happens:
 | A real classroom, for weeks | Real learning | Slow, expensive, and never the same twice: you can't rerun a lesson on the same student with a different tutor. |
 | **A simulated student's computer** | Learning, measured later; attention; distraction; reliance on help. Rerun any student as often as you like. | Whether the simulated student is like a real one (section 7). |
 
-Learning goes wrong *on the computer*: the student drifts to a feed, copies an answer instead of working it out, gets nagged and quits. So the environment is a student's computer with a simulated student at it, and the tutor is a program on that computer. We give up realism for **control and repeatability**: the student's mind is a set of numbers we can read, and the same student can be run again with a different tutor.
+Learning goes wrong *on the computer*: the student drifts to a feed, copies an answer instead of working it out, gets nagged and quits. So the environment is a student's computer with a simulated student at it, and the tutor is a program on that computer.
+
+**The student is a model of cognition, written as rules.** We take what is known about how people learn (attention gates learning, help can raise performance without building knowledge, retrieval slows forgetting, nagging drives people away) and write each piece as a rule over a few numbers. Then a random seed draws a **type** of student and that student's traits, so one set of rules gives us a whole population: focused, distractible, answer-seeking, strong but bored, slow and steady, and every mix in between.
+
+That is what makes this a design space rather than a single test. Change a rule and you have a different theory of the learner; change the seed and you have a different student; run the same tutor across many seeds and you can ask which kinds of tutor help which kinds of student. In Part B you'll do all three: add your own cognitive rule, run tutors across a population, and see whose students learn.
 
 ### 1.2 What lives in LearnOS
 **Apps.** Seven learning apps (Files, Reader, Notes, Calendar, Messages, Quiz, Browser) plus a social Feed: the desktop above. Each holds something the tutor may need (readings, the student's notes and calendar, the course channel, the feed with its tips and wrong claims).
