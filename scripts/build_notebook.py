@@ -79,7 +79,7 @@ That is what makes this a design space rather than a single test. Change a rule 
 
 **A tracker.** It records which app is in front of the student, in 5-minute chunks. It can't see the phone: off-screen time shows up as "idle".
 
-**Tools.** The tutor doesn't see the screen; it acts through 19 tools (text in, text out), grouped by app. Some cost the student time: assigning a reading, sending a message, running a quiz. Others are free to the student (looking at files, peeking at a reading itself, checking the calendar). The desktop is a **replay** for us humans. (Extension: give the tutor screenshots and let it click, as computer-use agents do.)
+**Tools.** At every level the tutor acts the same way: through 19 tools (text in, text out), grouped by app. It never gets a screenshot or a click; everything it knows arrives as text, and how much text depends on the level (below). Some tools cost the student time: assigning a reading, sending a message, running a quiz. Others are free to the student: looking at files, peeking at a reading itself, checking the calendar. The desktop is a **replay** for us humans. (Extension: give the tutor screenshots and let it click, as computer-use agents do.)
 """)
 code("""
 import pandas as pd
@@ -90,7 +90,7 @@ with pd.option_context("display.max_colwidth", None):
                           for t in specs]).set_index(["app", "tool"]))
 """)
 md("""
-**What the tutor sees.** Every tool call returns text, followed by a status line (time used, steps used, unread messages) and one line with the student's screen, as if the tutor were following the student. That text is all a tutor model ever gets. How much more it sees is the **level** you pick:
+**What the tutor sees.** Every tool call returns text, followed by a status line (time used, steps used, unread messages) and, at every level, one line describing what is in front of the student right now, as if the tutor were following them. What else it is told, at the start and after each call, is the **level** you pick:
 
 | Level | The tutor sees |
 |---|---|
