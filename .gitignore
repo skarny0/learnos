@@ -11,3 +11,4 @@ learnos_data/
 notebooks/learnos_data/
 .ipynb_checkpoints/
 .DS_Store
+notebooks/.learnos_workshop.built.json

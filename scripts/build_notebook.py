@@ -1,5 +1,11 @@
-"""Build notebooks/learnos_workshop.ipynb (the single workshop notebook). Edit this, then: python scripts/build_notebook.py"""
+"""Build notebooks/learnos_workshop.ipynb (the single workshop notebook). Edit this, then: python scripts/build_notebook.py
+
+The notebook is also edited by hand in Jupyter. To keep those edits from being lost, the builder keeps a
+copy of what it last wrote (notebooks/.learnos_workshop.built.json) and refuses to overwrite a notebook
+that has changed since. It prints the changed cells: carry them into this file first, then rebuild.
+--force overwrites anyway."""
 import json
+import sys
 from pathlib import Path
 
 cells = []
@@ -670,5 +676,22 @@ nb = {"cells": cells, "metadata": {"kernelspec": {"display_name": "Python 3", "l
       "language_info": {"name": "python"}}, "nbformat": 4, "nbformat_minor": 5}
 for i, c in enumerate(cells):
     c["id"] = f"w{i:02d}"
-(Path(__file__).resolve().parents[1] / "notebooks" / "learnos_workshop.ipynb").write_text(json.dumps(nb, indent=1))
+OUT = Path(__file__).resolve().parents[1] / "notebooks" / "learnos_workshop.ipynb"
+LAST = OUT.with_name(".learnos_workshop.built.json")
+if OUT.exists() and LAST.exists() and "--force" not in sys.argv:
+    on_disk = [c["source"] for c in json.loads(OUT.read_text())["cells"]]
+    last = [c["source"] for c in json.loads(LAST.read_text())["cells"]]
+    if on_disk != last:
+        import difflib
+        print(f"{OUT.name} was edited since the last build. Carry these edits into {Path(__file__).name} first, or rerun with --force:")
+        for i in range(max(len(on_disk), len(last))):
+            a = last[i] if i < len(last) else ""
+            b = on_disk[i] if i < len(on_disk) else ""
+            if a != b:
+                print(f"\n--- cell {i} ---")
+                print("\n".join(difflib.unified_diff(a.splitlines(), b.splitlines(), "last build", "on disk", lineterm="", n=1)))
+        sys.exit(1)
+text = json.dumps(nb, indent=1)
+OUT.write_text(text)
+LAST.write_text(text)
 print(len(cells), "cells")
