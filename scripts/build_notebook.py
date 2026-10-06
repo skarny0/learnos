@@ -158,7 +158,7 @@ The rules are plain arithmetic with a little chance, seeded, so every run can be
 2. **Doing well now is not the same as having learned.** Help raises *borrowed* skill, which fades; only *knows it* lasts.
 3. **Every action has a side effect.** Quizzes tire, messages annoy, muting feels controlling.
 
-**What each tutor action does to the hidden numbers**
+**What each tutor action does to the hidden numbers.** These rules are the same for every student; the seed never changes them. What the seed changes is the numbers they run on: the student's traits (how fast they learn, how easily they drift, what they already know, how much they lean on help), their starting attention and motivation, and the luck in every step (uptake varies 0.7× to 1.3×, each 5-minute chunk is a drift roll, each quiz question a weighted coin). So the arrows below give the direction for everyone; the seed sets the size.
 
 | Tutor action | Takes | Knows it | Quiz score now | Reliance | Motivation |
 |---|---|---|---|---|---|
