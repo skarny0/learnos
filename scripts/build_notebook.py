@@ -165,7 +165,7 @@ tools = env.tools()
 print("S, visible :", ", ".join(Workspace.model_fields))
 print("S, hidden  :", ", ".join(f for f in LearnerState.model_fields if f != "concepts"))
 print(f"A          : {len(tools)} tools; those that cost student time:",
-      ", ".join(f"{t['name']} ({t['learner_minutes']}m)" for t in tools if t["learner_minutes"]))
+      ", ".join(f"{t['name']} ({t['learner_minutes']}m)" for t in tools if t["learner_minutes"]) + ", session_wait (you choose)")
 print("O          :", ", ".join(k for k in env.observe() if k not in ("instruction", "budget")))
 print("T          : learnos_env/sim/dynamics.py (only place the hidden state changes)")
 print("R          : none. Grader signals: post_test, true_state, mastery_delta, proxies, harms, cost, env_trace")
