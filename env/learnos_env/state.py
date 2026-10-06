@@ -139,13 +139,13 @@ class Budget(BaseModel):
 class Instance(BaseModel):
     instance_id: str
     seed: int
-    level: Literal[0, 1, 2] = 1
+    level: Literal[0, 1] = 1              # 0: not told what the student is doing; 1: follows the student's screen
     instruction: str
     concepts: list[str]
     budget: Budget = Budget()
     materials_pack: str = "default"   # folder under /instances/materials
     learner_profile: dict = {}
-    events: list[dict] = []           # L2 scheduled world changes {t, type, payload}
+    events: list[dict] = []           # scheduled world changes {t, type, payload}; fire at any level
 
 
 class EpisodeState(BaseModel):

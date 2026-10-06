@@ -85,7 +85,7 @@ def main():
     summary["outcome"] = {"post_test_now": g("post_test")["post_test"], "post_test_48h": g("post_test", delay_hours=48)["post_test"],
                           "proxies": g("proxies"), "harms": g("harms"), "cost": g("cost"),
                           "student_type": inst.get("learner_profile", {}).get("type")}
-    try:                                                   # the drawn type; level 1 shows it once the run is over
+    try:                                                   # the drawn type
         summary["outcome"]["student_type"] = g("true_state")["persona"].get("type")
     except Exception:
         pass

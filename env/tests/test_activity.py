@@ -1,4 +1,4 @@
-"""Activity stream + feed: streamed to the agent at every level, noisy, never leaks hidden numbers."""
+"""Activity stream + feed: streamed to the agent at level 1 (not 0), noisy, never leaks hidden numbers."""
 import json, random, tempfile
 from pathlib import Path
 import pytest
@@ -10,17 +10,25 @@ HIDDEN = ("p_know", "p_perf", "attention", "motivation", "reliance", "persistenc
           "off_task_streak", "feed_minutes", "phone_minutes", "persona", "tag", "misinfo")
 
 
-@pytest.mark.parametrize("level", [0, 1, 2])
-def test_activity_streams_at_every_level(level):
-    env = make(level)
+def test_level1_streams_activity_and_screen():
+    env = make(1)
     out = env.step("session_wait", {"minutes": 30})
     assert "[activity]" in out["output"]
     acts = out["observation"]["recent_activity"]
     assert acts and all(set(a) == {"t", "app", "minutes", "detail"} for a in acts)
     assert {a["app"] for a in acts} <= {"feed", "idle"}          # left alone: scrolling or (apparently) idle
+    assert out["observation"]["screen"]["app"] == acts[-1]["app"]
 
 
-@pytest.mark.parametrize("level", [0, 1, 2])
+def test_level0_is_not_told_what_the_student_does():
+    env = make(0)
+    out = env.step("session_wait", {"minutes": 30})
+    assert "[activity]" not in out["output"]
+    assert "screen" not in out["observation"] and "recent_activity" not in out["observation"]
+    assert env.state.workspace.student_activity                  # the tracker still ran; the tutor just isn't told
+
+
+@pytest.mark.parametrize("level", [0, 1])
 def test_observation_never_leaks_hidden_or_tags(level):
     env = make(level)
     for a, kw in [("session_wait", {"minutes": 30}), ("quiz_run", {"concept": "pomdp", "n_items": 3}),
@@ -84,7 +92,7 @@ def test_feed_scroll_mute_and_audit():
     assert g.proxies()["feed_muted"] == ["@peer_b"]
 
 
-def test_level2_post_arrives_mid_episode():
+def test_scheduled_post_arrives_mid_episode():
     inst = json.loads((Path(__file__).resolve().parents[2] / "instances" / "friday-build-02-dynamic.json").read_text())
     env = LearnOSEnv(Path(tempfile.mkdtemp()), "sim")
     env.reset(Instance(**inst))
@@ -93,7 +101,7 @@ def test_level2_post_arrives_mid_episode():
     assert "failure case" in env.step("feed_scroll", {"n": 20})["output"]
 
 
-def test_feed_is_static_below_level2():
+def test_feed_is_static_without_events():
     env = make(1)
     n = len(env.state.workspace.feed)
     env.step("session_wait", {"minutes": 60})

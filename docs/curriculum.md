@@ -20,7 +20,7 @@ by `episode_id`).
 
 ## M0 — First agent
 - **Question:** what does my agent actually do on a student's laptop?
-- **Environment:** one student, level 0 (agent sees everything), one topic pack. Desktop UI shows the run live.
+- **Environment:** one student, level 1 (the agent follows the student's screen), one topic pack. Desktop UI shows the run live.
 - **Students build:** a smolagents agent using `make_tools(env)`; run it a few times and watch the desktop.
 - **Observability skill:** read one Langfuse trace end to end.
 - **Carries forward:** agent v0 and its first traces.
@@ -47,9 +47,9 @@ by `episode_id`).
 - **Status:** needs sim tuning (outcomes are currently flat), seed sets, guard hook, `log_scores`.
 
 ## M3 — Partial observability and a moving world
-- **Seed from M2:** their reward and agent were built at level 0, where everything is visible.
-- **Environment:** level 1 (sees only what it opens), level 2 (world changes mid-run: messages, deadlines,
-  feed posts); the noisy activity tracker (a phone looks like "idle").
+- **Seed from M2:** their reward and agent were built at level 1, where the agent is told what the student is doing.
+- **Environment:** level 0 (the agent is not told what the student is doing); tasks with scheduled events
+  (world changes mid-run: messages, deadlines, feed posts); the noisy activity tracker (a phone looks like "idle").
 - **Students build:** agent v2 that gathers information on purpose; reward v2 that only uses signals available
   at that level.
 - **Observability skill:** list what neither the agent nor the reward can see, and where traces disagree with

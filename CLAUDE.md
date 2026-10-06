@@ -18,8 +18,9 @@ human is the learner for 2 days).
    student text in `sim/renderer.py`; it never decides correctness or writes to `LearnerState`.
 3. **`/observe` and `/step` never serialize `LearnerState`.** Test exists; keep it green.
 4. **Observability is a per-episode `level`, not separate environments.** Level only changes
-   the observation builder, the grader's gating, and whether L2 events fire. The tool list
-   is constant.
+   what the tutor is told about the student: 0 = nothing (no screen, no tracker stream), 1 = the
+   student's screen and the tracker stream. The tool list is constant, the grader is not gated by
+   level, and an instance's scheduled `events` fire at every level.
 5. **Measurement is an action with cost.** `quiz_run` consumes learner-minutes and perturbs
    state. The grader's `post_test()` is the fixed-item, agent-independent outcome.
 6. **The UI is a dumb renderer** of the websocket payload (+ live-mode input forms). No

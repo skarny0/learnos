@@ -35,11 +35,10 @@ def test_steps_and_budget():
     assert "Quiz result" in out["output"]
 
 
-def test_grader_levels():
+def test_grader_signals_at_level_1():
     env = make(level=1)
     g = GraderView(env.state, token_ok=True)
-    with pytest.raises(Unavailable):
-        g.true_state()                     # level 1: only at episode end
+    assert "p_know" in g.true_state()      # the level gates the tutor, not the grader
     env.step("session_end", {"summary": "done"})
     assert "p_know" in g.true_state()
     assert isinstance(g.post_test(48), float)
@@ -56,7 +55,7 @@ def test_no_token_no_peek():
         g.post_test(48)                    # the agent must not be able to read its own outcome
 
 
-def test_level2_event_fires():
+def test_scheduled_event_fires():
     inst = json.loads((Path(__file__).resolve().parents[2] / "instances" / "friday-build-02-dynamic.json").read_text())
     env = LearnOSEnv(Path(tempfile.mkdtemp()), "sim")
     env.reset(Instance(**inst))

@@ -11,7 +11,7 @@ def test_quiz_log_is_typed_and_has_no_mood():
     with warnings.catch_warnings():
         warnings.simplefilter("error")                 # pydantic serializer warnings fail the test
         env.step("quiz_run", {"concept": "pomdp", "n_items": 3, "difficulty": 0.5})
-        ws = env.observe()["workspace"]
+        ws = env.state.workspace.model_dump()            # what the desktop payload serializes
     assert isinstance(env.state.workspace.quiz_log[0], QuizResult)
     assert "mood" not in ws["quiz_log"][0] and "asks_for_answer" not in ws["quiz_log"][0]
 

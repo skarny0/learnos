@@ -24,7 +24,7 @@ class LearnOSEnv:
         self.state: EpisodeState | None = None
         self.rng = random.Random(0)
         self.trace: TraceWriter | None = None
-        self.opened: set[str] = set()        # level-1 visibility set
+        self.opened: set[str] = set()        # windows the tutor has opened (shown on the desktop)
         self.action_log: list[dict] = []     # agent's own actions this episode (for the UI)
         self.cinfo: dict = {}                # sim-side concept info (sections, keywords); never observed
 
@@ -116,7 +116,7 @@ class LearnOSEnv:
         # activity arrives via POST /live/activity instead of dynamics.tick.
 
         s.workspace.student_activity.extend(activity)
-        if activity:
+        if activity and s.instance.level >= 1:          # level 0: the tutor is not told what the student did
             result.output += "\n[activity] " + "; ".join(f"t={a.t} {a.app} {a.minutes}m" for a in activity)
 
         # clock + budget
@@ -212,20 +212,21 @@ class LearnOSEnv:
 
     # ----------------------------------------------------------- observation --
     def observe(self) -> dict:
-        """Serialize Workspace filtered by level. Never includes LearnerState.
-        The activity stream (tracker reports, a proxy) is included at every level."""
+        """What the tutor is told, besides tool outputs. Never includes LearnerState.
+        At every level the tutor explores the computer with its tools; the level decides whether it is also
+        told what the student is doing on it. Level 0: nothing (no screen, no tracker stream). Level 1: the
+        app in front of the student and what it shows (`screen`), plus the tracker stream (`recent_activity`)."""
         s = self.state
         ws, lvl = s.workspace, s.instance.level
         unread = sum(1 for m in ws.messages if not m.read and m.author != "agent")
-        base = {"episode_id": self.trace.episode_id, "t": ws.t, "step": s.step, "done": s.done, "termination": s.termination,
-                "unread_messages": unread, "screen": self._screen(),
-                "budget": s.instance.budget.model_dump(), "instruction": s.instance.instruction,
-                "recent_activity": [a.model_dump() for a in ws.student_activity[-RECENT_ACTIVITY:]]}
-        if lvl == 0:
-            return {**base, "workspace": ws.model_dump()}
-        # level 1/2: only what has been opened + unread counts
-        return {**base, "open_windows": sorted(self.opened),
-                "hint": "Use files_ls, messages_read_channel, calendar_list, notes_list, browser_visit, feed_scroll to look around."}
+        obs = {"episode_id": self.trace.episode_id, "t": ws.t, "step": s.step, "done": s.done, "termination": s.termination,
+               "unread_messages": unread, "budget": s.instance.budget.model_dump(), "instruction": s.instance.instruction,
+               "open_windows": sorted(self.opened),
+               "hint": "Use files_ls, messages_read_channel, calendar_list, notes_list, browser_visit, feed_scroll to look around."}
+        if lvl >= 1:
+            obs["screen"] = self._screen()
+            obs["recent_activity"] = [a.model_dump() for a in ws.student_activity[-RECENT_ACTIVITY:]]
+        return obs
 
     def _screen(self) -> dict:
         """What is in front of the student right now: the app the tracker last saw, and what that app
@@ -254,10 +255,9 @@ class LearnOSEnv:
 
     # --------------------------------------------------------------- events --
     def _apply_scheduled_events(self) -> None:
-        """Level 2: world changes mid-episode (message arrives, deadline moves, note edited, page breaks)."""
+        """World changes mid-episode (message arrives, deadline moves, note edited, page breaks), as listed in
+        the instance. Part of the task, not of observability: they fire at every level."""
         s = self.state
-        if s.instance.level < 2:
-            return
         for ev in s.instance.events:
             if ev.get("fired") or ev["t"] > s.workspace.t:
                 continue

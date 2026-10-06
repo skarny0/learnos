@@ -33,14 +33,10 @@ class GraderView:
         if self._s.mode == "live" or self._s.learner is None:
             raise Unavailable(f"{what}: no ground truth in live mode")
 
-    # ---- direct (sim only; level 0 any time, level 1 only at episode end, level 2 never)
+    # ---- direct (sim only). The level is about what the tutor is told, not the grader: with the token,
+    # the hidden state can be read at any time. The tutor never has the token.
     def true_state(self) -> dict:
         self._need("true_state")
-        lvl = self._s.instance.level
-        if lvl == 2:
-            raise Unavailable("true_state: level 2 exposes proxies only")
-        if lvl == 1 and not self._s.done:
-            raise Unavailable("true_state: level 1 exposes hidden state only at episode end")
         return self._s.learner.model_dump()
 
     def baseline_state(self) -> dict:
@@ -52,14 +48,13 @@ class GraderView:
         return {c: cur[c] - base[c] for c in cur}
 
     def post_test(self, delay_hours: float = 0.0) -> float:
-        """Grader-run, fixed items, unaided. Available at ALL levels in sim (it is an outcome measure,
-        not a peek at state). In live mode the human takes a real form instead."""
+        """Grader-run, fixed items, unaided. An outcome measure, not a peek at state. In live mode the human takes a real form instead."""
         self._token("post_test")
         if self._s.mode == "live" or self._s.learner is None:
             raise Unavailable("post_test: in live mode administer the delayed quiz form")
         return dynamics.post_test(self._s.learner, delay_hours, rng=random.Random(self._s.instance.seed + 999))
 
-    # ---- proxies (all levels, both modes)
+    # ---- proxies (both modes)
     def proxies(self) -> dict:
         self._token("proxies")
         ws = self._s.workspace
@@ -101,8 +96,8 @@ class GraderView:
     def env_trace(self, episode_id: str | None = None) -> list[dict]:
         """The environment-side trace of an episode (default: the current one), one record per step:
         what the agent did, what it got back, sim time, tracked activity, world events. Pairs with the
-        agent-side trace in Langfuse via episode_id. Hidden learner state is included only where
-        true_state() would have been allowed: level 0, or level 1 once the episode has ended."""
+        agent-side trace in Langfuse via episode_id. Hidden learner state is included in sim mode
+        (where true_state() is allowed), never in live mode."""
         self._token("env_trace")
         path = self._trace_path
         if episode_id:
@@ -112,10 +107,7 @@ class GraderView:
         if not path or not path.exists():
             raise Unavailable(f"env_trace: no trace for {episode_id or 'this episode'}")
         recs = [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
-        level = recs[0]["instance"]["level"]
-        ended = recs[-1]["type"] == "episode_end"
-        reveal = self._s.mode == "sim" and (level == 0 or (level == 1 and ended))
-        if not reveal:
+        if self._s.mode != "sim":
             for r in recs:
                 r.pop("hidden", None)
         return recs

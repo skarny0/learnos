@@ -59,42 +59,22 @@ def agent_metrics(agent) -> dict:
 
 
 def task_text(instance: dict, obs: dict) -> str:
-    """What the agent is given at the start: the instruction plus the observation its level allows.
-    smolagents passes the model only this text and tool outputs, so without it the agent would start blind
-    even at level 0."""
+    """What the agent is given at the start: the instruction, the budget, and (at level 1) the student's screen.
+    smolagents passes the model only this text and tool outputs, so this is the whole first observation."""
     out = [instance["instruction"], ""]
-    b, ws = obs.get("budget", {}), obs.get("workspace")
+    b = obs.get("budget", {})
     out.append(f"Session: {obs.get('t', 0)} of {b.get('learner_minutes')} student-minutes used, "
                f"{obs.get('step', 0)} of {b.get('agent_steps')} steps used.")
-    if obs.get("screen"):
+    if obs.get("screen"):                                 # level 1: the tutor follows the student's screen
         out.append(f"Student's screen right now: {obs['screen']['app']}: {obs['screen']['shows']}")
-    if not ws:                                            # level 1/2: their screen, plus what you open
         out.append("You see what is on the student's screen (updated after every action). "
                    "Anything else on their computer you have to open with the tools.")
-        out.append(obs.get("hint", ""))
-        if obs.get("unread_messages"):
-            out.append(f"Unread messages: {obs['unread_messages']}.")
-        return "\n".join(out)
-    now = ws.get("t", 0)
-    out.append("You can see the student's whole computer. What is on it right now:")
-    files = [f for f in ws["files"].values() if f["kind"] == "file"]
-    out.append("Files (path: sections):")
-    out += [f"  {f['path']}: {', '.join(f['sections'])}" for f in sorted(files, key=lambda f: f["path"])]
-    out.append("Notes:")
-    out += [f"  [{k}] {n['title']}: {n['body'].strip()}" for k, n in ws["notes"].items()]
-    out.append("Calendar (minutes from session start):")
-    out += [f"  {e['title']} at t={e['start']} for {e.get('duration', '?')} min ({e.get('kind', '')})"
-            for e in sorted(ws["calendar"].values(), key=lambda e: e["start"])]
-    out.append("Messages:")
-    out += [f"  [{m['channel']}] {m['author']} (t={m['t']}): {m['text']}" for m in ws["messages"]]
-    out.append("Browser pages: " + ", ".join(ws.get("pages", {})))
-    posts = [p for p in ws.get("feed", []) if p["t"] <= now]
-    out.append("Student's social feed (latest first):")
-    out += [f"  {p['source']}: {p['text']}" for p in sorted(posts, key=lambda p: -p["t"])[:8]]
-    if ws.get("feed_muted"):
-        out.append("Muted on the feed: " + ", ".join(ws["feed_muted"]))
-    if ws.get("quiz_log"):
-        out.append("Quiz results so far: " + "; ".join(f"{q['concept']} {q['correct']}/{q['n']}" for q in ws["quiz_log"]))
+    else:                                                 # level 0: not told what the student is doing
+        out.append("You are not told what the student is doing on their computer. "
+                   "Everything you learn comes from what the tools return.")
+    out.append(obs.get("hint", ""))
+    if obs.get("unread_messages"):
+        out.append(f"Unread messages: {obs['unread_messages']}.")
     return "\n".join(out)
 
 

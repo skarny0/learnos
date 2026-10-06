@@ -62,22 +62,27 @@ it (tool-set-size experiments) is a one-liner in `make_tools(include=[...])`.
 
 ## 4. Observation O and the observability knob
 
-`reset(instance)` takes `level ∈ {0,1,2}`. The level changes **what the observation
-contains and whether the world moves**; the agent's tool list never changes.
+`reset(instance)` takes `level ∈ {0,1}`. At both levels the agent explores the computer with the
+same tools and gets the same tool outputs. The level is **whether it is also told what the
+student is doing on that computer**.
 
-| Level | Agent sees | World | Grader `true_state()` |
-|---|---|---|---|
-| 0 fully observable | whole `Workspace` every step | static | any time |
-| 1 partial | only windows it has opened + unread count; step budget | static | only at episode end |
-| 2 partial + dynamic | as 1 | scheduled events fire mid-episode (message arrives, deadline moves, note edited, page breaks) | never (proxies + post_test only) |
+| Level | Agent is told, besides tool outputs | Grader |
+|---|---|---|
+| 0 | nothing about the student: no screen, no tracker stream | not gated |
+| 1 (default) | `screen` (the app in front of the student and what it shows) after every action, plus `recent_activity` and the `[activity]` line | not gated |
 
-Live mode (`LEARNOS_MODE=live`) is level 2 with a human in the learner slot: same tools,
+The grader is not gated by level: with the token, `true_state()` is available at any time in sim
+(the tutor never has the token). Scheduled `events` in an instance (message arrives, deadline
+moves, note edited, page breaks) are part of the task and fire at either level.
+
+Live mode (`LEARNOS_MODE=live`) is level 1 with a human in the learner slot: same tools,
 same traces, `true_state()` → 403, `post_test()` → "administer the delayed quiz form".
 
 ### 4.1 Activity stream
 
-At **every** level each observation carries `recent_activity` (last 8 tracker events) and each
+At **level 1** each observation carries `recent_activity` (last 8 tracker events) and each
 step's output appends `[activity] t=.. app Nm; ...` for the learner-minutes that step consumed.
+At level 0 the tracker still runs (it is in the trace and on the desktop) but the agent is not told.
 Events are `{t, app, minutes, detail}`, one per 5-minute chunk. The tracker is screen-level:
 it reports the app in front of the student (`reader`, `messages`, `quiz`, `feed`) or `idle`.
 It cannot see attention, off-screen phone use shows up as `idle` (as does genuine rest), and
@@ -141,13 +146,13 @@ teaching beats doing nothing, an empty "explain" teaches nothing, nagged student
 ## 7. Grader interface (`grader.py`) — signals, not reward
 
 ```
-true_state()        direct, gated by level           baseline_state()
-mastery_delta()     direct                            post_test(delay_hours)  outcome; all levels in sim
+true_state()        direct, sim only                  baseline_state()
+mastery_delta()     direct                            post_test(delay_hours)  outcome; sim only
 proxies()           quiz_mean, n_quizzes, n_messages, replies, learner_minutes, blocks_added, notes_edited,
                     tracked_minutes_by_app, feed_muted, n_nudges
 final_workspace()   state-based grading target        transcript()
 feed_audit()        each published post with its true tag and muted flag
-env_trace(episode_id?) env-side trace of any episode; hidden state only where true_state() is allowed
+env_trace(episode_id?) env-side trace of any episode; hidden state included in sim, never in live
 cost()              steps, learner_minutes, termination (tokens/latency/$ merged from Langfuse client-side)
 harms()             nagging, self-labelled answer-giving, muted a source with needed info, nudged while tracked on-task
 ```

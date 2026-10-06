@@ -54,13 +54,16 @@ scripts/    Dev helpers (make_instances, replay_trace, validate_sim).
 
 | `LEARNOS_MODE` | Who is the student | Grader `true_state()` | Use |
 |---|---|---|---|
-| `sim` (default) | simulated learner in `env/learnos_env/sim` | available (level 0/1) | workshop, pass^k runs |
+| `sim` (default) | simulated learner in `env/learnos_env/sim` | available | workshop, pass^k runs |
 | `live` | the human at localhost:8080 | 403 | 2-day in-the-wild deployment |
 
 ## Observability levels (set per episode on `reset`)
 
-- **0** full workspace state returned every step
-- **1** agent only sees what it opens; step budget applies
-- **2** level 1 + the world changes during the episode (new messages, moved deadlines, edits)
+At both levels the tutor explores the computer with the same tools. The level is whether it is also told what the student is doing on it.
+
+- **0** the tutor is not told what the student is doing: no screen, no tracker stream. Only what the tools return.
+- **1** (default) the tutor follows the student: after every action it is told which app is in front of them and what it shows, plus the tracker stream.
+
+Mid-episode world changes (a message arrives, the deadline moves) are listed per task in `instances/*.json` under `events` and fire at either level.
 
 See `docs/environment-spec.md`. Build plan in `PLAN.md`. Handoff for Claude Code in `CLAUDE.md`.

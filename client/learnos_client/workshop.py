@@ -90,7 +90,8 @@ def run_tutor(env: LearnOS, instructions: str | None, *, name: str = "my-tutor",
               instance: str = "friday-build-01-demo", model: str = "gpt-5.4-mini", tools: list[str] | None = None,
               level: int | None = None, max_steps: int = 40, quiet: bool = False) -> dict:
     """Run one real AI tutor on one simulated student. Returns the run with what happened to the student.
-    name groups runs in Langfuse (it becomes the trace's session). tools=[...] limits the tutor's tools."""
+    name groups runs in Langfuse (it becomes the trace's session). tools=[...] limits the tutor's tools.
+    level: 0 = the tutor is not told what the student is doing; 1 = it follows the student's screen (the task's default)."""
     from smolagents import OpenAIServerModel, ToolCallingAgent
     if not have_model():
         raise RuntimeError("No OPENAI_API_KEY: use recorded_runs() instead, or add the key and rerun load_keys().")

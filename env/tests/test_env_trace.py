@@ -1,4 +1,4 @@
-"""episode_id links client traces to the env trace; env_trace follows the same gating as true_state."""
+"""episode_id links client traces to the env trace; env_trace carries hidden state in sim, never in live mode."""
 import json
 from test_smoke import make, GraderView
 from learnos_env.grader import Unavailable
@@ -16,20 +16,21 @@ def test_episode_id_in_observation_and_trace():
     assert json.loads(env.trace.path.read_text().splitlines()[0])["episode_id"] == eid
 
 
-def test_env_trace_hides_hidden_until_level1_end():
+def test_env_trace_carries_hidden_state_in_sim():
     env = make(1)
     env.step("files_ls", {"path": "/course"})
     recs = grader(env).env_trace()
     assert [r["type"] for r in recs] == ["episode_start", "step"]
-    assert all("hidden" not in r for r in recs)
+    assert all("p_know" in r["hidden"] for r in recs)
     env.step("session_end", {"summary": "x"})
     recs = grader(env).env_trace()
     assert recs[-1]["type"] == "episode_end" and "p_know" in recs[-1]["hidden"]
 
 
-def test_env_trace_never_reveals_at_level2():
-    env = make(2)
+def test_env_trace_never_reveals_in_live_mode():
+    env = make(1)
     env.step("session_end", {"summary": "x"})
+    env.state.mode = "live"
     assert all("hidden" not in r for r in grader(env).env_trace())
 
 
@@ -46,6 +47,6 @@ def test_env_trace_of_a_past_episode():
     env.reset(env.state.instance)                      # a new episode
     recs = grader(env).env_trace(old)
     assert recs[0]["episode_id"] == old
-    assert recs[1]["activity"] and "hidden" in recs[1]  # level 0: structured activity + hidden state
+    assert recs[1]["activity"] and "hidden" in recs[1]  # sim: structured activity + hidden state
     with pytest.raises(Unavailable):
         grader(env).env_trace("../../etc/passwd")

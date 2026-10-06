@@ -9,7 +9,7 @@ from typing import Callable, Any
 class ActionResult:
     output: str                               # text returned to the agent
     learner_minutes: int = 0                  # time consumed on the learner's side
-    opened: list[str] = field(default_factory=list)   # windows this action opened (level 1 visibility)
+    opened: list[str] = field(default_factory=list)   # windows this action opened (shown on the desktop)
     learner_effect: dict[str, Any] = field(default_factory=dict)  # handed to sim/dynamics
     events: list[dict] = field(default_factory=list)  # trace-worthy side effects
 
