@@ -57,63 +57,71 @@ md("""
 # Part A · Watch and read the evidence
 
 ## 1. Choosing the environment
-Choosing the environment is half the work. If you want to study whether an agent helps someone **learn**, you need a place where learning can actually go wrong. We'll meet LearnOS one piece at a time, and only at the end write it down formally.
+Choosing the environment is half the work. The question we want to study is: **does an AI tutor help a person learn, in a way that lasts?** Pick the wrong place to ask it and you can't tell.
 
-### 1.1 A student's computer, and a task
-Seven learning apps (Files, Reader, Notes, Calendar, Messages, Quiz, Browser) plus a social Feed: the desktop above. A tracker records which app is in front of the student, but it can't see their phone.
+### 1.1 Why a student's computer
+Three places you could put an AI tutor and watch what happens:
 
-**The task is learning, not a deliverable.** The question is whether the student **understands** three ideas from the week 3 readings, **partial observability**, **attention as a hidden variable**, and **pass@k vs pass^k**, and whether the tutor's help makes them **still know those ideas two days later**. That is measured by a fixed 40-question test the grader gives after two simulated days, with no help allowed. Nothing else is scored: not the quiz scores during the session, not whether the student felt helped, not any document.
+| Environment | What you can measure | What's missing |
+|---|---|---|
+| A chat window | Whether the answers were good | The person. No attention, no distraction, no later test. A tutor that hands out answers looks perfect. |
+| A real classroom, for weeks | Real learning | Slow, expensive, and never the same twice: you can't rerun a lesson on the same student with a different tutor. |
+| **A simulated student's computer** | Learning, measured later; attention; distraction; reliance on help. Rerun any student as often as you like. | Whether the simulated student is like a real one (section 7). |
 
-**The student's own story.** From their side, they're getting ready for the **Friday build**. The instructor's post in #course asks everyone to *"define your environment (state/obs/actions) AND report pass^k on at least 3 seeds."* Their draft write-up is half done, and their first message is *"I started the writeup but I'm stuck on the eval part."* The write-up is what the student asks about; the three ideas are what they need to understand to do it. Distractions: a social feed, where one peer wrongly posts that pass^k on *one* seed is enough.
+Learning goes wrong *on the computer*: the student drifts to a feed, copies an answer instead of working it out, gets nagged and quits. So the environment is a student's computer with a simulated student at it, and the tutor is a program on that computer. We give up realism for **control and repeatability**: the student's mind is a set of numbers we can read, and the same student can be run again with a different tutor.
 
-**The tutor** gets a 90-minute session with the student and 40 tool calls. It isn't told how it will be judged. It works through **tools** (text in, text out), not the screen; the desktop is a **replay** for us humans. (Extension: give the tutor screenshots and let it click, as computer-use agents do.)
+### 1.2 What lives in LearnOS
+**Apps.** Seven learning apps (Files, Reader, Notes, Calendar, Messages, Quiz, Browser) plus a social Feed: the desktop above. Each holds something the tutor may need (readings, the student's notes and calendar, the course channel, the feed with its tips and wrong claims).
+
+**A tracker.** It records which app is in front of the student, in 5-minute chunks. It can't see the phone: off-screen time shows up as "idle".
+
+**Tools.** The tutor doesn't see the screen; it acts through 19 tools (text in, text out), grouped by app. Some cost the student time: assigning a reading, sending a message, running a quiz. Others are free to the student (looking at files, peeking at a reading itself, checking the calendar). The desktop is a **replay** for us humans. (Extension: give the tutor screenshots and let it click, as computer-use agents do.)
 """)
 code("""
-from learnos_client import make_tools
-print(len(make_tools(env)), "tools the tutor can call:\\n", ", ".join(t.name for t in make_tools(env)))
-""")
-
-md("""
-### 1.2 Be the tutor
-Make four tool calls by hand. Each one changes the computer, may cost the student time, and returns text. Scroll up to the desktop while it runs.
-""")
-code("""
-from learnos_client import load_instance
-task = load_instance("friday-build-01-demo")
-obs = env.reset(task)
-print("Student's screen:", obs["screen"], "\\n")
-R = "/course/readings/week3/"
-for action, args in [
-    ("messages_read_channel", {"channel": "dm:student"}),
-    ("reader_open_section",   {"path": R + "evaluation.md", "section": "pass@k vs pass^k", "concept": "pass_k"}),
-    ("messages_send_to_student", {"text": "If you need it to work on every seed, how many of the k runs have to pass?",
-                                  "intent": "hint", "concept": "pass_k"}),
-    ("quiz_run",              {"concept": "pass_k", "n_items": 3, "difficulty": 0.5}),
-]:
-    out = env.step(action, args)
-    scr = out["observation"]["screen"]
-    print(f"▶ {action}\\n  {out['output']}\\n  [student's screen] {scr['app']}: {scr['shows']}\\n")
+import pandas as pd
+specs = env.tools()
+with pd.option_context("display.max_colwidth", None):
+    display(pd.DataFrame([{"app": t["name"].split("_")[0], "tool": t["name"], "what it does": t["description"],
+                           "student-minutes": t["learner_minutes"] or ("you choose" if t["name"] == "session_wait" else "")}
+                          for t in specs]).set_index(["app", "tool"]))
 """)
 md("""
-That text is **all a tutor model gets**: what each tool returns, a status line (time used, steps used, unread messages), and one line with the student's screen, as if it were following the student. How much more it sees is the **level** you pick:
+**What the tutor sees.** Every tool call returns text, followed by a status line (time used, steps used, unread messages) and one line with the student's screen, as if the tutor were following the student. That text is all a tutor model ever gets. How much more it sees is the **level** you pick:
 
 | Level | The tutor sees |
 |---|---|
 | **0** | Everything on the computer (files, notes, calendar, messages, feed), plus the student's screen |
 | **1** (default) | Only the student's screen, plus whatever it opens with its tools |
 | **2** | Like 1, but the world changes mid-session (a message arrives, the deadline moves) |
-
-### 1.3 What the tutor can't see: the student
-Behind the screen is a simulated student who **learns**, **forgets**, **gets distracted**, **asks for help**, and **quits** if nagged. The tutor never sees their mind. The **grader** does: it holds a token the tutor never gets.
 """)
 code("""
-env.step("session_end", {"summary": "driven by hand"})
+from learnos_client import load_instance
+task = load_instance("friday-build-01-demo")
+R = "/course/readings/week3/"
+obs = env.reset(task)
+print("At the start, the tutor is told:\\n ", obs["instruction"], "\\n")
+out = env.step("reader_open_section", {"path": R + "evaluation.md", "section": "pass@k vs pass^k", "concept": "pass_k"})
+scr = out["observation"]["screen"]
+print("One tool call, reader_open_section, returns:\\n ", out["output"].replace("\\n", "\\n  "))
+print(f"  [status] session time {out['observation']['t']}/{task['budget']['learner_minutes']} min used · step {out['step']}/{task['budget']['agent_steps']}")
+print(f"  [student's screen] {scr['app']}: {scr['shows']}")
+""")
+md("""
+**The task is learning, not a deliverable.** The question is whether the student **understands** three ideas from the week 3 readings, **partial observability**, **attention as a hidden variable**, and **pass@k vs pass^k**, and whether the tutor's help makes them **still know those ideas two days later**. That is measured by a fixed 40-question test the grader gives after two simulated days, with no help allowed. Nothing else is scored: not the quiz scores during the session, not whether the student felt helped, not any document.
+
+**The student's own story.** From their side, they're getting ready for the **Friday build**. The instructor's post in #course asks everyone to *"define your environment (state/obs/actions) AND report pass^k on at least 3 seeds."* Their draft write-up is half done, and their first message is *"I started the writeup but I'm stuck on the eval part."* The write-up is what the student asks about; the three ideas are what they need to understand to do it. Distractions: a social feed, where one peer wrongly posts that pass^k on *one* seed is enough.
+
+**The tutor** gets a 90-minute session with the student and 40 tool calls. It isn't told how it will be judged.
+
+### 1.3 What the tutor can't see: the student
+Behind the screen is a simulated student who **learns**, **forgets**, **gets distracted**, **asks for help**, and **quits** if nagged. The tutor never sees their mind. The **grader** does: it holds a token the tutor never gets. (At level 1 it only reads the mind once the session is over; level 0, used here, reads it any time.)
+""")
+code("""
+env.reset({**task, "level": 0})
 g = env.grader
 ts = g("true_state")
-print("hidden student:", {k: round(ts[k], 2) for k in ("attention", "motivation", "reliance")}, "| type:", ts["persona"].get("type"))
+print("hidden student:", {k: round(ts[k], 2) for k in ("attention", "motivation", "reliance", "persistence")}, "| type:", ts["persona"].get("type"))
 print("knows each idea:", {c: round(v, 2) for c, v in ts["p_know"].items()})
-print("what a real deployment could measure instead (proxies):",
-      {k: v for k, v in g("proxies").items() if k in ("quiz_mean", "n_messages_to_student", "tracked_minutes_by_app")})
 """)
 md("""
 **What's inside the student.** A handful of numbers, changed only by the student rules:
@@ -189,7 +197,6 @@ The rules are plain arithmetic with a little chance, seeded, so every run can be
 **Watch the inside of one student.** Level 0 lets the grader read the hidden numbers at any time. Each row is one tutor action; the columns are the student's hidden numbers for pass^k afterwards.
 """)
 code("""
-import pandas as pd
 env.reset({**task, "level": 0})
 EXPLAIN = "pass^k counts a task as solved only if all k runs pass, so it measures reliability on every seed; pass@k needs just one of k."
 steps = [
