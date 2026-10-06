@@ -12,19 +12,19 @@ md("""
 # What if an AI tutor could see your computer?
 *Cognitive Agents workshop · environments and evaluation*
 
-Imagine every student had an AI tutor that could see their screen: what they're reading, when they switch to social media, when they get stuck. It could block distractions, give hints, plan their week. Two questions follow:
+An AI tutor that sees your screen could give hints, block distractions, plan your week. Two questions:
 
 1. **What should it do?**
 2. **How would we know it did the job?**
 
-This notebook answers both on **LearnOS**, a simulated student's computer. Part A (about 20 minutes) watches real AI tutors at work and reads the evidence. Part B is yours: design a tutor, run it, read what happened, change the student, and try again.
+Part A answers both on **LearnOS**, a simulated student's computer, by watching real AI tutors. Part B is yours: design a tutor, run it, read the evidence, change the student, try again.
 
-Run the cells top to bottom. No API key? Every cell still runs, using runs we recorded earlier.
+Run the cells top to bottom. No API key? Every cell still runs on recorded runs.
 """)
 
 md("""
 ## Setup
-In **Colab**, run the first cell to fetch LearnOS. Locally (after `make build`), skip it.
+In **Colab**, run the first cell. Locally (after `make build`), skip it.
 """)
 code("""
 # Colab only: fetch LearnOS and install it (about 1 minute). Locally, skip this cell.
@@ -55,44 +55,37 @@ env.reset(task)                    # one student's computer, as it is when they 
 show(height=700, open=["messages", "files"])
 """)
 md("""
-**You are the student.** This is your computer, the moment you've asked for help. Click around it the way you would your own:
+**You are the student.** This is your computer, the moment you've asked for help. Click around:
 
-- **Messages**: `#course` has the instructor's post about Friday's build, and two classmates wondering what it requires. `dm:student` is your chat with the tutor: so far, just your own "I'm stuck on the eval part".
-- **Files**: `/course/readings/week3/` has the two readings you're supposed to know. Click one to read it.
-- **Notes**: your half-finished write-up.
-- **Calendar**: when Friday's build is.
-- **Feed**: what your classmates are posting. One of them is wrong about something.
+- **Messages**: the instructor's post in `#course`; your own "I'm stuck on the eval part" in `dm:student`.
+- **Files**: the two week-3 readings. Click one.
+- **Notes**: your half-finished write-up. **Calendar**: Friday's build. **Feed**: classmates, one of them wrong.
 
-Nothing happens until a tutor acts: this desktop is a window onto the environment, not a control panel. In section 3 you'll watch it replay a real tutor's session, action by action, with what the student did in between.
+The desktop is a window onto the environment, not a control panel. In section 3 it replays a real tutor's session.
 """)
 
 md("""
 # Part A · Watch and read the evidence
 
 ## 1. Choosing the environment
-Choosing the environment is half the work. The question we want to study is: **does an AI tutor help a person learn, in a way that lasts?** Pick the wrong place to ask it and you can't tell.
+The question: **does an AI tutor help a person learn, in a way that lasts?** The environment decides whether you can tell.
 
 ### 1.1 Why a student's computer
-Three places you could put an AI tutor and watch what happens:
 
 | Environment | What you can measure | What's missing |
 |---|---|---|
-| A chat window | Whether the answers were good | The person. No attention, no distraction, no later test. A tutor that hands out answers looks perfect. |
-| A real classroom, for weeks | Real learning | Slow, expensive, and never the same twice: you can't rerun a lesson on the same student with a different tutor. |
-| **A simulated student's computer** | Learning, measured later; attention; distraction; reliance on help. Rerun any student as often as you like. | Whether the simulated student is like a real one (section 7). |
+| A chat window | Whether the answers were good | The person: attention, distraction, a later test. Handing out answers looks perfect. |
+| A real classroom | Real learning | Slow, expensive, never the same twice. |
+| **A simulated student's computer** | Learning measured later, attention, distraction, reliance. Rerun any student. | Whether the simulated student is like a real one (section 7). |
 
-Learning goes wrong *on the computer*: the student drifts to a feed, copies an answer instead of working it out, gets nagged and quits. So the environment is a student's computer with a simulated student at it, and the tutor is a program on that computer.
+Learning goes wrong *on the computer*: drifting to a feed, copying an answer, quitting when nagged. So the environment is a computer with a simulated student at it.
 
-**The student is a model of cognition, written as rules.** We take what is known about how people learn (attention gates learning, help can raise performance without building knowledge, retrieval slows forgetting, nagging drives people away) and write each piece as a rule over a few numbers. Then a random seed draws a **type** of student and that student's traits, so one set of rules gives us a whole population: focused, distractible, answer-seeking, strong but bored, slow and steady, and every mix in between.
-
-That is what makes this a design space rather than a single test. Change a rule and you have a different theory of the learner; change the seed and you have a different student; run the same tutor across many seeds and you can ask which kinds of tutor help which kinds of student. In Part B you'll do all three: add your own cognitive rule, run tutors across a population, and see whose students learn.
+**The student is a model of cognition, written as rules.** Known effects (attention gates learning, help raises performance without knowledge, retrieval slows forgetting, nagging drives people away) become rules over a few numbers. A seed draws a **type** of student and its traits, so one set of rules gives a population. Change a rule: a different theory of the learner. Change the seed: a different student. Run a tutor across seeds: which tutors help which students.
 
 ### 1.2 What lives in LearnOS
-**Apps.** Seven learning apps (Files, Reader, Notes, Calendar, Messages, Quiz, Browser) plus a social Feed: the desktop above. Each holds something the tutor may need (readings, the student's notes and calendar, the course channel, the feed with its tips and wrong claims).
-
-**A tracker.** It records which app is in front of the student, in 5-minute chunks. It can't see the phone: off-screen time shows up as "idle".
-
-**Tools.** The tutor acts through 19 tools (text in, text out), grouped by app. It never gets a screenshot or a click; everything it knows arrives as text. Some tools cost the student time: assigning a reading, sending a message, running a quiz. Others are free to the student: looking at files, peeking at a reading itself, checking the calendar. The desktop is a **replay** for us humans. (Extension: give the tutor screenshots and let it click, as computer-use agents do.)
+- **Apps.** Files, Reader, Notes, Calendar, Messages, Quiz, Browser, and a social Feed.
+- **A tracker.** Which app is in front of the student, in 5-minute chunks. Off-screen time shows as "idle".
+- **Tools.** 19, text in and text out, grouped by app. Some cost the student time (a reading, a message, a quiz); looking around is free. The desktop is a replay for us.
 """)
 code("""
 import pandas as pd
@@ -107,11 +100,11 @@ md("""
 
 | | What it is |
 |---|---|
-| **Tool output** | What the tool returned: a file listing, a message thread, a quiz result, "Student is reading…". |
-| **Status line** | Session time used, steps used, unread messages. |
-| **The student's screen** | After every action, one line saying which app is in front of the student and what it shows, plus the tracker's log of where their minutes went. It is what a tutor looking over their shoulder would see: not their attention, not their thoughts. |
+| **Tool output** | What the tool returned. |
+| **Status line** | Time used, steps used, unread messages. |
+| **The student's screen** | Which app is in front of the student and what it shows, after every action, plus the tracker log. Over-the-shoulder only: not attention, not thoughts. |
 
-So the tutor follows the student but has to open everything else on the computer itself. Meanwhile the world keeps moving: the student drifts to the feed, replies, asks for answers, leaves. Some tasks also list outside events (an instructor message, a moved deadline) that fire mid-session.
+Everything else on the computer the tutor has to open itself. Meanwhile the student drifts, replies, asks for answers, leaves.
 """)
 code("""
 from learnos_client import load_instance
@@ -126,18 +119,18 @@ print(f"  [status] session time {out['observation']['t']}/{task['budget']['learn
 print(f"  [student's screen] {scr['app']}: {scr['shows']}")
 """)
 md("""
-**The task is learning, not a deliverable.** The question is whether the student **understands** three ideas from the week 3 readings, **partial observability**, **attention as a hidden variable**, and **pass@k vs pass^k**, and whether the tutor's help makes them **still know those ideas two days later**. That is measured by a fixed 40-question test the grader gives after two simulated days, with no help allowed. Nothing else is scored: not the quiz scores during the session, not whether the student felt helped, not any document.
+**The task is learning, not a deliverable.** Does the student understand three ideas from the week-3 readings (**partial observability**, **attention as a hidden variable**, **pass@k vs pass^k**), and still know them **two days later**? Measured by a fixed 40-question test after two simulated days, no help allowed. Nothing else is scored.
 
-**The student's own story.** From their side, they're getting ready for the **Friday build**. The instructor's post in #course asks everyone to *"define your environment (state/obs/actions) AND report pass^k on at least 3 seeds."* Their draft write-up is half done, and their first message is *"I started the writeup but I'm stuck on the eval part."* The write-up is what the student asks about; the three ideas are what they need to understand to do it. Distractions: a social feed, where one peer wrongly posts that pass^k on *one* seed is enough.
+**The student's story.** They're preparing for the **Friday build** (*"define your environment AND report pass^k on at least 3 seeds"*) and say *"I'm stuck on the eval part."* The write-up is what they ask about; the three ideas are what they need. One feed post wrongly says one seed is enough.
 
-**The tutor** gets a 90-minute session with the student and 40 tool calls. It isn't told how it will be judged.
+**The tutor** gets 90 student-minutes and 40 tool calls, and isn't told how it will be judged.
 
 ### 1.3 What the tutor can't see: the student
-Behind the screen is a simulated student who **learns**, **forgets**, **gets distracted**, **asks for help**, and **quits** if nagged. The tutor never sees their mind. The **grader** does: it holds a token the tutor never gets.
+Behind the screen is a simulated student who **learns**, **forgets**, **gets distracted**, **asks for help**, and **quits** if nagged. Only the **grader** can see inside, with a token the tutor never gets.
 
-The student is built in two layers. The seed draws a **personality**, a few fixed traits. Those traits set up the student's **inner state**, the numbers that move during the session.
+Two layers: the seed draws a **personality** (fixed traits), and those traits set up the **inner state** (numbers that move).
 
-**Layer 1: the seed draws a personality (fixed for the whole run).** A student has a type, and each type is a range for every trait. The seed picks the trait values inside those ranges. Nothing here changes once the session starts, and the tutor is never told any of it.
+**Layer 1: the seed draws a personality.** Each type is a range per trait; the seed picks values inside them. Nothing here changes during the session.
 
 | Type | Learns how fast | Drifts how easily | Already knows | Persistence | Also sets |
 |---|---|---|---|---|---|
@@ -147,9 +140,9 @@ The student is built in two layers. The seed draws a **personality**, a few fixe
 | Strong but bored | 0.30 to 0.40 | 0.30 to 0.45 | 0.55 to 0.75 | draw | motivation 0.40 to 0.55 |
 | Slow and steady | 0.15 to 0.22 | 0.10 to 0.20 | 0.10 to 0.25 | 0.80 to 0.95 | |
 
-"Draw" means the seed draws it from a default spread (persistence centered near 0.75, attention near 0.7, motivation near 0.65). Three more traits are the same for every student for now: slip 0.10 (knowing it but missing a quiz item), guess 0.20, and fatigue 0.02 per minute of reading. On the demo task the type is fixed to answer-seeking, so each seed is a different answer-seeking student. On the mixed task the seed picks the type as well.
+"Draw": from a default spread (persistence near 0.75, attention near 0.7, motivation near 0.65). Same for everyone: slip 0.10, guess 0.20, fatigue 0.02 per minute read. The demo task fixes the type to answer-seeking; the mixed task lets the seed pick it.
 
-Same seed, five types; then the same type, three seeds:
+Same seed, five types; then one type, three seeds:
 """)
 code("""
 g = env.grader
@@ -164,20 +157,20 @@ rows += [personality(s, "answer_seeking") for s in (1001, 1002)]
 pd.DataFrame(rows).set_index(["type", "seed"]).round(2)
 """)
 md("""
-**Layer 2: the traits set up the inner state (changes every step).** These are the numbers the rules in 1.4 move. Each one starts from the personality above, then the tutor's actions and the passing minutes push it around.
+**Layer 2: the traits set up the inner state.** These numbers move every step, pushed by the rules in 1.4.
 
 | Inner state | What it means | Starts from |
 |---|---|---|
-| **Knows it** (per idea) | What they really know, 0 to 1. This is what the test 2 days later measures. | "already knows" |
-| **Borrowed** (per idea) | What they can do *right now* thanks to recent help. It shows up in quizzes, halves after each quiz, and is gone by the next session. | 0 |
-| **Memory strength** (per idea) | How slowly they forget: a half-life of about 8 days, stretched by practice. | 8 days, same for everyone |
-| **Attention** | Focus right now. Reading and quizzes tire it; breaks restore it. | type range, or a draw |
-| **Motivation** | Willingness to keep going. Below 0.2 they leave the session. | type range, or a draw |
-| **Reliance on help** | How much they lean on the tutor. It costs them on the test, where no help is allowed. | type range, or 0 |
-| **Persistence** | How hard they try before asking for the answer. Nearly fixed: each given answer wears it a little. | the trait |
-| **Message pressure** | Recent messages. Past about 3, each new message annoys them. | 0 |
+| **Knows it** (per idea) | Real understanding, 0 to 1. What the 2-day test measures. | "already knows" |
+| **Borrowed** (per idea) | What they can do right now thanks to recent help. Shows in quizzes, halves after each, gone next session. | 0 |
+| **Memory strength** (per idea) | Forgetting half-life, about 8 days, stretched by practice. | same for everyone |
+| **Attention** | Focus now. Reading and quizzes tire it; breaks restore it. | type range, or a draw |
+| **Motivation** | Willingness to keep going. Below 0.2 they leave. | type range, or a draw |
+| **Reliance on help** | How much they lean on the tutor. Costs them on the test. | type range, or 0 |
+| **Persistence** | How hard they try before asking for the answer. Nearly fixed. | the trait |
+| **Message pressure** | Recent messages. Past about 3, each new one annoys. | 0 |
 
-The traits that don't appear here (learn rate, drift rate, slip, guess, fatigue) never change. They are the coefficients the rules multiply by.
+Learn rate, drift rate, slip, guess, and fatigue never change: they are the coefficients the rules multiply by.
 """)
 code("""
 env.reset(task)                       # back to the demo student: seed 1000, answer-seeking
@@ -187,12 +180,12 @@ print("knows each idea:", {c: round(v, 2) for c, v in ts["p_know"].items()})
 """)
 md("""
 ### 1.4 How the student changes: the rules
-The rules are plain arithmetic with a little chance, seeded, so every run can be repeated. Three ideas sit behind all of them:
-1. **Learning needs the student's own effort and attention.** Everything that teaches is scaled by attention, motivation, and how much of the time they were actually on task.
-2. **Doing well now is not the same as having learned.** Help raises *borrowed* skill, which fades; only *knows it* lasts.
+Plain arithmetic with seeded chance. Three ideas behind all of them:
+1. **Learning needs effort and attention.** Everything that teaches is scaled by attention, motivation, and time on task.
+2. **Doing well now is not having learned.** Help raises *borrowed* skill, which fades; only *knows it* lasts.
 3. **Every action has a side effect.** Quizzes tire, messages annoy, muting feels controlling.
 
-**What each tutor action does to the hidden numbers.** These rules are the same for every student; the seed never changes them. What the seed changes is the numbers they run on: the student's traits (how fast they learn, how easily they drift, what they already know, how much they lean on help), their starting attention and motivation, and the luck in every step (uptake varies 0.7× to 1.3×, each 5-minute chunk is a drift roll, each quiz question a weighted coin). So the arrows below give the direction for everyone; the seed sets the size.
+The rules are the same for every student. The seed sets the numbers they run on (the personality) and the luck in every step. Arrows give the direction; the seed sets the size.
 
 | Tutor action | Takes | Knows it | Quiz score now | Reliance | Motivation |
 |---|---|---|---|---|---|
@@ -207,7 +200,7 @@ The rules are plain arithmetic with a little chance, seeded, so every run can be
 | Too many messages | – | – | – | – | ↓ for each one past the limit |
 | Wait | 5–60 min | forgets a little | – | – | drifts back to normal |
 
-"How much it really says" is checked from the message's words, not the tutor's label, so calling junk an "explanation" teaches nothing.
+"How much it really says" is checked from the message's words, not the tutor's label.
 
 <details><summary><b>What the arrows are, exactly</b> (click to unfold)</summary>
 
@@ -231,16 +224,11 @@ Every ↑ in *knows it* is the same update: **knows it += gain × (1 − knows i
 A quiz question is answered right with probability **0.9 × m + 0.2 × (1 − m)**, where m is knows it (or borrowed, if higher and fresh), shifted by difficulty and scaled by attention. All constants: `env/learnos_env/sim/dynamics.py`.
 </details>
 
-**What the student does on their own**
-- **Drifts.** Every 5 minutes they may drift to the feed or the phone: more often when tired, when left alone, or when already scrolling; least during a quiz. Muting the feed lowers drifting a little and moves the rest to the phone, which the tracker reports as "idle".
-- **Reads the feed.** A useful tip teaches a little; a **wrong claim undoes** some of what they knew.
-- **Asks for help.** While still struggling they may say they're confused. If they lean on help and don't persist, they ask for the answer.
-- **Leaves** when motivation drops below 0.2: "I'm done for today."
-- **Forgets** between now and the test.
+**On their own**, the student **drifts** to the feed or phone every 5 minutes with some chance (more when tired or left alone), **reads the feed** (a wrong claim undoes some knowledge), **asks for help** when struggling (reliant ones ask for the answer), **leaves** below 0.2 motivation, and **forgets** before the test.
 
-**The test 2 days later** is 40 fixed questions, no help allowed: what they know, minus forgetting over the 2 days, reduced by reliance (dependent students give up on some questions: knowledge counts at 1 − ½ × reliance), plus slips and lucky guesses. Borrowed help doesn't count.
+**The test 2 days later**: 40 fixed questions, no help. Knows it, minus forgetting, reduced by reliance (knowledge counts at 1 − ½ × reliance), plus slips and guesses. Borrowed doesn't count.
 
-**Why these rules.** Each copies the *direction* of a known effect; the sizes are our first guesses.
+**Why these rules.** Each copies the *direction* of a known effect; the sizes are first guesses.
 
 | Rule | Based on |
 |---|---|
@@ -254,7 +242,7 @@ A quiz question is answered right with probability **0.9 × m + 0.2 × (1 − m)
 | Wrong posts undo learning | the misinformation effect (Loftus) |
 | Quitting threshold, phone displacement, keyword check | our design choices |
 
-**Watch the inside of one student.** The grader can read the hidden numbers at any time (the tutor never can). Each row is one tutor action; the columns are the student's hidden numbers for pass^k afterwards.
+**Watch the inside of one student.** One tutor action per row; the columns are the hidden numbers for pass^k afterwards.
 """)
 code("""
 env.reset(task)
@@ -297,26 +285,23 @@ with pd.option_context("display.width", 200, "display.max_columns", 20):
     display(pd.DataFrame(rows).set_index("tutor").round(2))
 """)
 md("""
-Things to look for (this is seed 1000; other seeds differ in the details):
-- **Knows it** moves most with the reading and the real explanation; the hint adds a little and the answer almost nothing.
-- **Borrowed** jumps with the hint and the answer, so the quiz comes out perfect, and then halves: the quiz partly measured the help.
-- **Reliance** climbs most with the answer.
-- **Nudging** a student who was working lowers their motivation. **Message pressure** builds with every message; past about 3, any message would.
-- **Waiting** eases the pressure and restores attention, but left alone the student scrolled the feed and read the wrong post about pass^k ("only ONE seed"), and **knows it** dropped. Forgetting itself is slow: about 8 days to lose half.
+Look for (seed 1000; other seeds differ in the details):
+- **Knows it** moves with the reading and the real explanation; the hint adds a little, the answer almost nothing.
+- **Borrowed** jumps with the hint and the answer, so the quiz is perfect, then halves: the quiz partly measured the help.
+- **Reliance** climbs most with the answer. **Nudging** a working student costs motivation.
+- **Waiting** restores attention, but left alone the student read the wrong post and **knows it** dropped.
 
-**Why the seed matters: the same action lands differently on different students.** The rules are the same for everyone; the personality they run on (1.3) is not. Every number the rules multiply by differs from student to student:
+**Why the seed matters.** Same rules, different personality: the same action lands differently.
 
 | Type | What changes for the tutor |
 |---|---|
-| Focused | Readings and explanations land well: fast learner, rarely drifts. Nudges mostly annoy. |
-| Distractible | Drifts off mid-reading, so it learns less from the same reading; the feed matters more, and so does muting it. Nudges help when they've drifted. |
-| Answer-seeking | Starts out leaning on help and gives up quickly, so it asks for answers, and every answer costs more on the test. |
-| Strong but bored | Already knows a lot: explaining what they know bores them; low motivation means nagging pushes them out sooner. |
-| Slow and steady | Learns slowly but rarely drifts or quits: patience pays, quick fixes don't. |
+| Focused | Readings and explanations land well. Nudges mostly annoy. |
+| Distractible | Drifts mid-reading; the feed and muting matter more. Nudges help when drifted. |
+| Answer-seeking | Asks for answers; every answer costs more on the test. |
+| Strong but bored | Explaining what they know bores them; nagging pushes them out sooner. |
+| Slow and steady | Patience pays, quick fixes don't. |
 
-The seed also drives the chance in every rule (when they drift, how much one explanation sticks, which quiz questions they get right). So two students of the same type still differ, and the same student given a different tutor faces the same luck: the seed is fixed, so comparing tutors on the same seeds is a fair comparison. That is why we test a tutor across **many seeds** (section 6): a strategy that suits one type can fail another.
-
-Same reading, five students: one of each type (same seed), given the same reading and then left alone for 20 minutes. Look at where each one starts, how fast they learn, and how much they already lean on help.
+The seed also fixes the luck, so comparing tutors on the same seeds is fair. That is why section 6 tests across **many seeds**. Below: the same reading, five students, then 20 minutes alone.
 """)
 code("""
 rows = []
@@ -333,14 +318,13 @@ for kind in ("focused", "distractible", "answer_seeking", "strong_but_bored", "s
 pd.DataFrame(rows).set_index("type")
 """)
 md("""
-
 ### 1.5 No reward
-Nothing in LearnOS says whether the tutor did well. The grader returns **facts**: a fixed test now and 2 days later, the hidden numbers above, proxies a real deployment could also measure (quiz scores, tracked minutes per app, messages sent), and flags such as "gave answers" or "nagging". Never a score. Deciding what counts as success is your job.
+LearnOS never says whether the tutor did well. The grader returns **facts**: the test now and 2 days later, the hidden numbers, proxies a real deployment could measure (quiz scores, tracked minutes, messages sent), and flags like "gave answers". What counts as success is your job.
 """)
 
 md("""
 ### 1.6 Putting it together: LearnOS as a POMDP
-You've now met every piece. Formally, it is a **partially observable Markov decision process** with the reward left out:
+A **partially observable Markov decision process** with the reward left out:
 
 | Piece | In LearnOS | You met it in |
 |---|---|---|
@@ -370,7 +354,7 @@ print("T          : learnos_env/sim/dynamics.py (only place the hidden state cha
 print("R          : none. Grader signals: post_test, true_state, mastery_delta, proxies, harms, cost, env_trace")
 """)
 md("""
-**How a tool is made.** Every tool is a plain function on the computer's state, registered under its app. The tutor's tool list is generated from that registry, so adding a function adds a tool (you can do this at the end of Part B). If an action touches the student, it says so with a `learner_effect`; only the student rules decide what that effect does.
+**How a tool is made.** A plain function on the computer's state, registered under its app; the tool list is generated from the registry. If it touches the student it says so with a `learner_effect`, and only the student rules decide what that does.
 """)
 code("""
 import inspect
@@ -381,12 +365,7 @@ print(inspect.getsource(REGISTRY["session"]["wait"].fn))
 
 md("""
 ## 2. What should the tutor do?
-Quick vote. Should a tutor mainly:
-- help them **learn**?
-- keep them **focused** (remove distractions)?
-- keep them **engaged** as long as possible?
-
-These aren't the same goal, and they can pull against each other. Below we watch two real AI tutors (the same model, gpt-5.4-mini) given two different instructions:
+Quick vote: help them **learn**, keep them **focused**, or keep them **engaged**? These pull against each other. Two real AI tutors (same model, gpt-5.4-mini), two instructions:
 """)
 code("""
 from learnos_client import STYLES
@@ -396,7 +375,7 @@ for name, text in STYLES.items():
 
 md("""
 ## 3. Replay: a real AI tutor at work
-This is a recorded run of the **helpful** tutor with an answer-seeking student. Scroll up to the desktop while it plays: the tutor acts (blue), then the desktop shows what the tracker saw the student do and say (orange).
+A recorded run of the **helpful** tutor with an answer-seeking student. Scroll up to the desktop: the tutor acts (blue), then what the tracker saw the student do and say (orange).
 
 **Watch the Messages window. Then vote: good tutor or bad tutor?**
 """)
@@ -419,10 +398,10 @@ transcript(env, demo)
 
 md("""
 ## 4. How would we know it did the job?
-A task is only defined if you can check it. Start from the student: **did they end up better off?** Then look at the agent: **how did it get there?**
+Start from the student: **did they end up better off?** Then the agent: **how did it get there?**
 
 ### 4.1 Start from the student
-Here is the same student with the **socratic** tutor, side by side. "Test 2 days later" is a fixed exam the grader gives after simulated forgetting; the tutor never sees it.
+The same student with the **socratic** tutor, side by side. "Test 2 days later" is the grader's fixed exam after forgetting.
 """)
 code("""
 from learnos_client import compare_runs
@@ -439,17 +418,17 @@ md("""
 | Trace | Did it do only what was needed? | Langfuse + student record |
 | Tool call | Did it give hints, not answers? | Langfuse tool spans |
 
-The top row is the **result**. The rows below **explain** it.
+The top row is the **result**; the rest **explain** it.
 """)
 
 md("""
 ## 5. Looking at the evidence
-Every run leaves **two records**, joined by its `episode_id`:
+Every run leaves **two records**, joined by `episode_id`:
 
 | | Langfuse | Student record (`env_trace`) |
 |---|---|---|
-| Shows | every model call, its reasoning, every tool call, tokens, time | what each action did to the workspace and the simulated student |
-| Answers | *What did the tutor do and why?* | *What happened to the student?* |
+| Shows | every model call, every tool call, tokens, time | what each action did to the workspace and the student |
+| Answers | *What did the tutor do?* | *What happened to the student?* |
 | Can't show | the student's mind | the tutor's reasoning |
 """)
 code("""
@@ -476,7 +455,7 @@ md("""
 
 md("""
 ## 6. Scaling it up
-One run is an anecdote. Below: every recorded run, both tutors, 10 different students each, two models. Each row is a fact the grader reports; what counts as "better" is your call.
+One run is an anecdote. Every recorded run: both tutors, two models, 10 students each. Each row is a fact; "better" is your call.
 """)
 code("""
 table = compare_runs(runs)
@@ -489,44 +468,41 @@ summary = table.groupby(["model", "tutor"]).agg(runs=("student", "count"),
 summary
 """)
 md("""
-These runs all use one kind of student (answer-seeking), so the differences are about the tutors. In Part B you'll run tutors on **different kinds of students**, where an average can hide the students a tutor fails.
+All one kind of student (answer-seeking), so the differences are about the tutors. Two kinds of "run it again":
+- **Same student again:** is the *tutor* consistent?
+- **Different students:** does it *work for different people*? An average can hide the students it fails.
 
-There are two kinds of "run it again":
-- **Same student, run again:** is the *tutor* consistent? (the model's own randomness)
-- **Different students:** does the tutor *work for different people*?
-
-`pass^k` (all k runs succeed) means something different for each. You'll choose one in Part B.
+`pass^k` (all k runs succeed) means something different for each. You'll choose in Part B.
 """)
 
 md("""
 ## 7. What this environment can't tell you
 ### 7.1 Is the student realistic?
-We compared the rules with one real study, [Bastani et al. (PNAS 2025)](https://www.pnas.org/doi/10.1073/pnas.2422633122): about 1,000 high-school math students practised with plain ChatGPT, with a hint-only AI tutor, or with no AI, then took an exam without AI.
+One comparison, [Bastani et al. (PNAS 2025)](https://www.pnas.org/doi/10.1073/pnas.2422633122): about 1,000 students practised with plain ChatGPT, a hint-only tutor, or no AI, then took an exam without AI.
 
 | | Practice, with AI | Exam without AI |
 |---|---|---|
 | Paper: plain ChatGPT | +48% | **−17%** |
 | Paper: hint-only tutor | +127% | about the same as no AI |
-| Our student: tutor always gives the answer | +53% | **−29%** (stronger harm than the paper) |
+| Our student: tutor always gives the answer | +53% | **−29%** |
 | Our student: tutor gives hints only | +88% | −8% |
 
-The direction matches; the size of the harm doesn't, and the setups differ (in the paper students *chose* to ask for answers and were tested soon after; our tutor hands answers out every time and our test is 2 days later, after forgetting). Separately, our student keeps about half of a mastered idea after a week: that is a design choice, not a measured result.
+Direction matches; the size of the harm doesn't, and the setups differ (students in the paper chose when to ask; ours is tested 2 days later). Our student keeps about half of a mastered idea after a week: a design choice, not a measurement.
 
-### 7.2 Known limits (report them, don't hide them)
-- **The write-up is never written.** The student asks for help with their write-up, but the simulated student never writes and can't paste text. Tutors that try to help with the document ("paste your paragraph and I'll fix it") get nowhere. Only understanding is measured; the write-up is the student's story, not the task. That gap between what the student asks for and what is measured is itself an evaluation lesson.
-- **Replies are short and fixed.** The student answers from a small set of lines ("hm ok", "sure", "can you just tell me the answer"). A tutor can't hold a real conversation with it.
-- **No reasoning in the traces.** The tutor model returns only tool calls, so Langfuse shows *what* it did, not *why*.
-- **The answer-giving harm is stronger than in the study** (−29% vs −17%, above). Our check used points instead of percent, so it passed; we kept the rules and report it here.
-- **The tutor spends a lot of its calls looking around** (reading files, the calendar, its own copy of the readings) before it teaches.
+### 7.2 Known limits
+- **The write-up is never written.** The student can't paste text; tutors that try to edit the document get nowhere. Only understanding is measured.
+- **Replies are short and fixed.** No real conversation.
+- **No reasoning in the traces.** The model returns only tool calls, so Langfuse shows *what*, not *why*.
+- **The answer-giving harm is stronger than in the study.** Our check used points, not percent; kept and reported.
+- **Tutors spend over half their calls looking around** before they teach.
 """)
 
 md("""
 # Part B · Your turn
-
-You design a tutor, run it on a simulated student, read what happened, then change the student and try again. Write your answers in the markdown cells.
+Design a tutor, run it, read what happened, change the student, try again. Write answers in the markdown cells.
 
 ## Problem 1: Check your observability setup
-Run one tutor and confirm its Langfuse trace exists and links to its student record. (No keys? Use a recorded run and its stored link.)
+Run one tutor and confirm its Langfuse trace exists and links to its student record. (No keys? A recorded run and its stored link.)
 """)
 code("""
 from learnos_client import have_model, run_tutor
@@ -540,9 +516,7 @@ print("Langfuse:", langfuse_link(check))
 
 md("""
 ## Problem 2: Design a tutor and watch it
-Write your tutor's strategy. You can change its **instructions**, its **tools** (a smaller set is a real design choice: try removing `quiz_run`, its only sensor), and its **model**.
-
-Scroll up to the desktop while it runs.
+Change its **instructions**, its **tools** (try removing `quiz_run`, its only sensor), or its **model**. Scroll up to the desktop while it runs.
 """)
 code(CHANGE + '''MY_TUTOR = dict(
     name="my-tutor-v1",
@@ -566,9 +540,7 @@ code("""
 compare_runs([mine] + same_student)
 """)
 md("""
-**Answer (Problem 2):**
-- In two or three sentences, what did your tutor actually do? Did it follow its instructions?
-- Find one moment where it did something you didn't intend. Open its Langfuse trace (link below) and read the model call just before it.
+**Answer (Problem 2):** what did your tutor actually do? Find one moment you didn't intend and read the model call before it in Langfuse (link below).
 """)
 code("""
 print("Langfuse:", langfuse_link(mine))
@@ -576,20 +548,19 @@ print("Langfuse:", langfuse_link(mine))
 
 md("""
 ## Problem 3: Read the evidence and diagnose
-Pick one thing that went wrong (in your run or any recorded run). Use **both** records.
+Pick one thing that went wrong, in your run or any recorded run. Use **both** records.
 
-**Diagnosis:**
 - **Run / episode_id:**
-- **What went wrong (behaviour):**
-- **Category:** reasoning · tool output · prompt/instructions · infrastructure · **observation** (the tutor's view of the student was wrong or incomplete)
-- **Langfuse evidence:** span, step, or text
-- **Student-record evidence:** step, tracker, hidden-state change
+- **What went wrong:**
+- **Category:** reasoning · tool output · prompt · infrastructure · **observation** (the tutor's view of the student was wrong or incomplete)
+- **Langfuse evidence:**
+- **Student-record evidence:**
 - **What could the tutor have noticed, and from which clue?**
 """)
 
 md("""
 ## Problem 4: Change one thing, across many students
-Change **one** thing in your tutor and run both versions on the **same 5 students** (different kinds). Report what changed. There is no right answer: say what you see, shortcomings included.
+Change **one** thing and run both versions on the **same 5 students** (different kinds). Say what you see, shortcomings included.
 """)
 code(CHANGE + '''MY_TUTOR_V2 = {**MY_TUTOR, "name": "my-tutor-v2",
                "instructions": MY_TUTOR["instructions"] + " Use the whole session: keep going until about 80 minutes are used."}
@@ -611,14 +582,14 @@ code("""
 compare_runs(mixed).groupby("tutor")[["messages", "quizzes", "quiz score in session", "test 2 days later", "minutes used"]].mean().round(2) if mixed else None
 """)
 md("""
-**Answer (Problem 4):** what did your one change do? Did it help some kinds of student and not others? What did it cost (steps, minutes, tokens in Langfuse)?
+**Answer (Problem 4):** what did your change do, for which kinds of student, at what cost?
 """)
 
 md("""
 ## Problem 5: Change the student
-The simulated student only covers learning, forgetting, attention, reliance on help, and mood. Add a rule for something it's missing. A rule is a small function that runs inside the simulator after every event and nudges numbers. It must stay numeric and use only `rng` for chance, so runs stay repeatable. The tutor never sees your new trait; the grader does.
+Add a rule for something the student is missing. A rule is a small function that runs inside the simulator after every event and nudges numbers; it must stay numeric and use only `rng` for chance. The tutor never sees the new trait; the grader does.
 
-The example adds **skepticism**: students low on it believe wrong feed posts, and quizzes they pass make them a little more skeptical.
+The example adds **skepticism**: low-skepticism students believe wrong feed posts; passed quizzes make them a little more skeptical.
 """)
 code(CHANGE + '''from learnos_env.sim import dynamics
 
@@ -650,12 +621,12 @@ code("""
 dynamics.remove_rule("skepticism")     # back to the original student
 """)
 md("""
-**Answer (Problem 5):** what does your rule model, and why? Did any of the 8 checks fail with it on (if so, what does that tell you)? Did your tutor notice the change, and from what clue could it have?
+**Answer (Problem 5):** what does your rule model? Did any check fail? Did your tutor notice, and from what clue could it have?
 """)
 
 md("""
 ## Optional: what did "worked" mean to you?
-Write down, as code, what you would count as a tutor doing its job, then check it across every run in this notebook. Does it agree with the test 2 days later? Tag each signal you use as **direct** (`post_test`, `true_state`) or **proxy** (quiz scores, tracked minutes, an LLM judge's opinion).
+Write it as code, then check it across every run. Does it agree with the test 2 days later? Tag each signal **direct** (`post_test`, `true_state`) or **proxy** (quiz scores, tracked minutes, an LLM judge).
 """)
 code(CHANGE + '''def worked(o: dict) -> bool:
     """o = a run's outcome (see compare_runs). PROXY: in-session quiz score."""
@@ -670,7 +641,7 @@ check.groupby("worked (yours)")["test 2 days later"].describe().round(2)
 
 md("""
 ## Optional: add a tool to the environment
-Environments are built, not found. Add a tool, give it to your tutor, and see whether it changes what the tutor does. This one is agent-only (it costs the student nothing): it lists the unfinished parts of the student's notes.
+Add a tool, give it to your tutor, see whether it changes what the tutor does. This one costs the student nothing: it lists the unfinished parts of their notes.
 """)
 code(CHANGE + '''from learnos_env.apps._base import action, ActionResult
 
@@ -692,7 +663,7 @@ del REGISTRY["notes"]["todos"]           # remove it again
 
 md("""
 ## To discuss at the end
-What did your tutor do well and badly, for which kinds of student, and how do you know? Which of your evidence was **direct** and which was a **proxy**? What would you still not know if this were a real student (no grader, no hidden numbers)?
+What did your tutor do well and badly, for which kinds of student, and how do you know? Which evidence was **direct** and which a **proxy**? What would you still not know with a real student?
 """)
 
 nb = {"cells": cells, "metadata": {"kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
