@@ -43,14 +43,27 @@ from learnos_client import load_keys
 keys = load_keys()
 """)
 code("""
-# Start LearnOS in this notebook, turn on Langfuse tracing, and show the desktop.
-from learnos_client import start, show, setup_langfuse
+# Start LearnOS in this notebook, turn on Langfuse tracing, and open the student's computer.
+from learnos_client import start, show, setup_langfuse, load_instance
 lf = None
 if keys["LANGFUSE_PUBLIC_KEY"] and keys["LANGFUSE_SECRET_KEY"]:
     lf = setup_langfuse()          # must run before any tutor is built, so every model call and tool call is traced
     print("✓ Langfuse tracing on")
 env = start()
-show(height=700)
+task = load_instance("friday-build-01-demo")
+env.reset(task)                    # one student's computer, as it is when they ask for help
+show(height=700, open=["messages", "files"])
+""")
+md("""
+**You are the student.** This is your computer, the moment you've asked for help. Click around it the way you would your own:
+
+- **Messages**: `#course` has the instructor's post about Friday's build, and two classmates wondering what it requires. `dm:student` is your chat with the tutor: so far, just your own "I'm stuck on the eval part".
+- **Files**: `/course/readings/week3/` has the two readings you're supposed to know. Click one to read it.
+- **Notes**: your half-finished write-up.
+- **Calendar**: when Friday's build is.
+- **Feed**: what your classmates are posting. One of them is wrong about something.
+
+Nothing happens until a tutor acts: this desktop is a window onto the environment, not a control panel. In section 3 you'll watch it replay a real tutor's session, action by action, with what the student did in between.
 """)
 
 md("""
