@@ -332,14 +332,15 @@ md("""
 ### 1.6 Putting it together: LearnOS as a POMDP
 A **partially observable Markov decision process** with the reward left out:
 
-| Piece | In LearnOS | You met it in |
-|---|---|---|
-| **State** *S* | the computer (visible) + the student's mind (hidden) | 1.1, 1.3 |
-| **Actions** *A* | the tool calls | 1.2 |
-| **Observations** *O* | tool output, status line, the student's screen and tracker log | 1.2 |
-| **Transitions** *T* | the student rules, seeded; unknown to the tutor | 1.4 |
-| **Reward** *R* | none: you write it | 1.5 |
-
+| Piece | In LearnOS | 
+|---|---|
+| **State** *S* | the computer (visible) + the student's mind (hidden) |
+| **Actions** *A* | the tool calls | 
+| **Observations** *O* | tool output, status line, the student's screen and tracker log |
+| **Transitions** *T* | the student rules, seeded; unknown to the tutor |
+| **Reward** *R* | none: you write it |
+""")
+md("""
 | Task environment | Observable | Deterministic | Episodic | Static | Discrete | Agents |
 |---|---|---|---|---|---|---|
 | Crossword puzzle | Fully | Deterministic | Sequential | Static | Discrete | Single |
@@ -678,10 +679,11 @@ for i, c in enumerate(cells):
     c["id"] = f"w{i:02d}"
 OUT = Path(__file__).resolve().parents[1] / "notebooks" / "learnos_workshop.ipynb"
 LAST = OUT.with_name(".learnos_workshop.built.json")
+_src = lambda c: "".join(c["source"]) if isinstance(c["source"], list) else c["source"]
 if OUT.exists() and LAST.exists() and "--force" not in sys.argv:
-    on_disk = [c["source"] for c in json.loads(OUT.read_text())["cells"]]
-    last = [c["source"] for c in json.loads(LAST.read_text())["cells"]]
-    if on_disk != last:
+    on_disk = [_src(c) for c in json.loads(OUT.read_text())["cells"]]
+    last = [_src(c) for c in json.loads(LAST.read_text())["cells"]]
+    if on_disk != last and on_disk != [c["source"] for c in cells]:      # edited by hand, and not yet carried into this file
         import difflib
         print(f"{OUT.name} was edited since the last build. Carry these edits into {Path(__file__).name} first, or rerun with --force:")
         for i in range(max(len(on_disk), len(last))):
