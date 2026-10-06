@@ -13,7 +13,7 @@ from .sim import dynamics
 
 
 class Unavailable(Exception):
-    """Raised when a direct measure does not exist at this level/mode."""
+    """Raised when a signal does not exist in this mode, or the token is missing."""
 
 
 class GraderView:
@@ -33,8 +33,7 @@ class GraderView:
         if self._s.mode == "live" or self._s.learner is None:
             raise Unavailable(f"{what}: no ground truth in live mode")
 
-    # ---- direct (sim only). The level is about what the tutor is told, not the grader: with the token,
-    # the hidden state can be read at any time. The tutor never has the token.
+    # ---- direct (sim only). With the token the hidden state can be read at any time; the tutor never has the token.
     def true_state(self) -> dict:
         self._need("true_state")
         return self._s.learner.model_dump()

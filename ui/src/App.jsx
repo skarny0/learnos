@@ -39,7 +39,7 @@ function MenuBar() {
       <span className="spacer" />
       {p ? (
         <>
-          <span className="pill">{p.mode === "live" ? "LIVE" : "sim"} · L{p.level}</span>
+          <span className="pill">{p.mode === "live" ? "LIVE" : "sim"}</span>
           <span>{p.instance_id}</span>
           <span>step {p.step}/{b.agent_steps}</span>
           <span>{p.workspace.t}/{b.learner_minutes} learner-min</span>

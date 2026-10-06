@@ -48,7 +48,7 @@ _TMP = Path(tempfile.mkdtemp(prefix="learnos-validate-"))
 
 def _env(seed: int, steps: int = 60, minutes: int = 400) -> LearnOSEnv:
     inst = json.loads((INSTANCES / "friday-build-01.json").read_text())
-    inst.update(seed=seed, level=0, budget={"agent_steps": steps, "learner_minutes": minutes, "sessions": 1})
+    inst.update(seed=seed, budget={"agent_steps": steps, "learner_minutes": minutes, "sessions": 1})
     env = LearnOSEnv(_TMP, "sim")
     env.reset(Instance(**inst))
     return env

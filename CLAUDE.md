@@ -17,10 +17,10 @@ human is the learner for 2 days).
 2. **Hidden state is numeric and updated only in `sim/dynamics.py`.** An LLM may paraphrase
    student text in `sim/renderer.py`; it never decides correctness or writes to `LearnerState`.
 3. **`/observe` and `/step` never serialize `LearnerState`.** Test exists; keep it green.
-4. **Observability is a per-episode `level`, not separate environments.** Level only changes
-   what the tutor is told about the student: 0 = nothing (no screen, no tracker stream), 1 = the
-   student's screen and the tracker stream. The tool list is constant, the grader is not gated by
-   level, and an instance's scheduled `events` fire at every level.
+4. **One observation mode, no "levels".** The tutor explores the computer with its tools and is
+   told what the student is doing on it: `screen` (the app in front of them and what it shows) after
+   every action, plus the tracker stream. The tool list is constant. An instance's scheduled
+   `events` are part of the task and always fire.
 5. **Measurement is an action with cost.** `quiz_run` consumes learner-minutes and perturbs
    state. The grader's `post_test()` is the fixed-item, agent-independent outcome.
 6. **The UI is a dumb renderer** of the websocket payload (+ live-mode input forms). No

@@ -60,29 +60,23 @@ traits uniformly from the type's ranges (`dynamics.STUDENT_TYPES`): `focused`, `
 few enough for a small model. The tool list is generated from `apps/REGISTRY`, so subsetting
 it (tool-set-size experiments) is a one-liner in `make_tools(include=[...])`.
 
-## 4. Observation O and the observability knob
+## 4. Observation O: what the agent sees
 
-`reset(instance)` takes `level ∈ {0,1}`. At both levels the agent explores the computer with the
-same tools and gets the same tool outputs. The level is **whether it is also told what the
-student is doing on that computer**.
+There is one observation mode. The agent explores the computer with its tools and gets their text
+outputs. Besides those, every observation carries `screen` (the app in front of the student and what
+it visibly shows) and `recent_activity` (the tracker's log). It is never told the student's hidden state.
 
-| Level | Agent is told, besides tool outputs | Grader |
-|---|---|---|
-| 0 | nothing about the student: no screen, no tracker stream | not gated |
-| 1 (default) | `screen` (the app in front of the student and what it shows) after every action, plus `recent_activity` and the `[activity]` line | not gated |
+With the token, the grader's `true_state()` is available at any time in sim (the agent never has the
+token). Scheduled `events` in an instance (message arrives, deadline moves, note edited, page breaks)
+are part of the task and always fire.
 
-The grader is not gated by level: with the token, `true_state()` is available at any time in sim
-(the tutor never has the token). Scheduled `events` in an instance (message arrives, deadline
-moves, note edited, page breaks) are part of the task and fire at either level.
-
-Live mode (`LEARNOS_MODE=live`) is level 1 with a human in the learner slot: same tools,
-same traces, `true_state()` → 403, `post_test()` → "administer the delayed quiz form".
+Live mode (`LEARNOS_MODE=live`) puts a human in the learner slot: same tools, same traces,
+`true_state()` → 403, `post_test()` → "administer the delayed quiz form".
 
 ### 4.1 Activity stream
 
-At **level 1** each observation carries `recent_activity` (last 8 tracker events) and each
-step's output appends `[activity] t=.. app Nm; ...` for the learner-minutes that step consumed.
-At level 0 the tracker still runs (it is in the trace and on the desktop) but the agent is not told.
+Each observation carries `recent_activity` (last 8 tracker events) and each step's output appends
+`[activity] t=.. app Nm; ...` for the learner-minutes that step consumed.
 Events are `{t, app, minutes, detail}`, one per 5-minute chunk. The tracker is screen-level:
 it reports the app in front of the student (`reader`, `messages`, `quiz`, `feed`) or `idle`.
 It cannot see attention, off-screen phone use shows up as `idle` (as does genuine rest), and
@@ -166,7 +160,7 @@ reward and `mastery_delta` / `post_test(48)` across seeds.
 
 ## 8. Task instances (`instances/*.json`)
 
-`{instance_id, seed, level, instruction, concepts, budget{agent_steps, learner_minutes, sessions},
+`{instance_id, seed, instruction, concepts, budget{agent_steps, learner_minutes, sessions},
 materials_pack, learner_profile, events[]}`. No target, no reward. Sample 20–50 seeds per
 profile for an instance set. Materials packs under `instances/materials/<pack>/`.
 

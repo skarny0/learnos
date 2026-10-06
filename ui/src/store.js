@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 // Mirror of the env's websocket payload, 1:1. No logic: whatever the server sends is the state.
-// payload = { workspace, step, done, termination, mode, instance_id, level, budget, agent_opened, action_log }
+// payload = { workspace, step, done, termination, mode, instance_id, budget, agent_opened, action_log }
 export const useEnv = create(() => ({ connected: false, payload: null }));
 
 // All URLs are relative to the page, so the desktop works at any mount point: nginx in Docker,

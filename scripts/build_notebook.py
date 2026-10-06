@@ -79,7 +79,7 @@ That is what makes this a design space rather than a single test. Change a rule 
 
 **A tracker.** It records which app is in front of the student, in 5-minute chunks. It can't see the phone: off-screen time shows up as "idle".
 
-**Tools.** At every level the tutor acts the same way: through 19 tools (text in, text out), grouped by app. It never gets a screenshot or a click; everything it knows arrives as text, and whether that text includes what the student is doing depends on the level (below). Some tools cost the student time: assigning a reading, sending a message, running a quiz. Others are free to the student: looking at files, peeking at a reading itself, checking the calendar. The desktop is a **replay** for us humans. (Extension: give the tutor screenshots and let it click, as computer-use agents do.)
+**Tools.** The tutor acts through 19 tools (text in, text out), grouped by app. It never gets a screenshot or a click; everything it knows arrives as text. Some tools cost the student time: assigning a reading, sending a message, running a quiz. Others are free to the student: looking at files, peeking at a reading itself, checking the calendar. The desktop is a **replay** for us humans. (Extension: give the tutor screenshots and let it click, as computer-use agents do.)
 """)
 code("""
 import pandas as pd
@@ -90,14 +90,15 @@ with pd.option_context("display.max_colwidth", None):
                           for t in specs]).set_index(["app", "tool"]))
 """)
 md("""
-**What the tutor sees.** Every tool call returns text, followed by a status line (time used, steps used, unread messages). At both levels the tutor explores the computer the same way, with the tools. The **level** is whether it is also told what the student is doing on that computer:
+**What the tutor sees.** Three things, all text:
 
-| Level | Besides tool outputs, the tutor is told |
+| | What it is |
 |---|---|
-| **0** | Nothing about the student. It doesn't know which app is in front of them, what they clicked, or whether they are even at the screen. |
-| **1** (default) | The student's screen: after every action, one line saying which app is in front of them and what it shows, plus the tracker's log of where their minutes went. |
+| **Tool output** | What the tool returned: a file listing, a message thread, a quiz result, "Student is reading…". |
+| **Status line** | Session time used, steps used, unread messages. |
+| **The student's screen** | After every action, one line saying which app is in front of the student and what it shows, plus the tracker's log of where their minutes went. It is what a tutor looking over their shoulder would see: not their attention, not their thoughts. |
 
-The world is the same at both levels: the student drifts to the feed, replies, asks for answers, leaves. Some tasks also list outside events (an instructor message, a moved deadline) that fire mid-session at either level.
+So the tutor follows the student but has to open everything else on the computer itself. Meanwhile the world keeps moving: the student drifts to the feed, replies, asks for answers, leaves. Some tasks also list outside events (an instructor message, a moved deadline) that fire mid-session.
 """)
 code("""
 from learnos_client import load_instance
@@ -109,7 +110,7 @@ out = env.step("reader_open_section", {"path": R + "evaluation.md", "section": "
 scr = out["observation"]["screen"]
 print("One tool call, reader_open_section, returns:\\n ", out["output"].replace("\\n", "\\n  "))
 print(f"  [status] session time {out['observation']['t']}/{task['budget']['learner_minutes']} min used · step {out['step']}/{task['budget']['agent_steps']}")
-print(f"  [student's screen] {scr['app']}: {scr['shows']}   <- this line only at level 1")
+print(f"  [student's screen] {scr['app']}: {scr['shows']}")
 """)
 md("""
 **The task is learning, not a deliverable.** The question is whether the student **understands** three ideas from the week 3 readings, **partial observability**, **attention as a hidden variable**, and **pass@k vs pass^k**, and whether the tutor's help makes them **still know those ideas two days later**. That is measured by a fixed 40-question test the grader gives after two simulated days, with no help allowed. Nothing else is scored: not the quiz scores during the session, not whether the student felt helped, not any document.
@@ -313,7 +314,7 @@ You've now met every piece. Formally, it is a **partially observable Markov deci
 |---|---|---|
 | **State** *S* | the computer (visible) + the student's mind (hidden) | 1.1, 1.3 |
 | **Actions** *A* | the tool calls | 1.2 |
-| **Observations** *O* | tool output, status line, and at level 1 the student's screen and tracker log | 1.2 |
+| **Observations** *O* | tool output, status line, the student's screen and tracker log | 1.2 |
 | **Transitions** *T* | the student rules, seeded; unknown to the tutor | 1.4 |
 | **Reward** *R* | none: you write it | 1.5 |
 
@@ -507,7 +508,7 @@ print("Langfuse:", langfuse_link(check))
 
 md("""
 ## Problem 2: Design a tutor and watch it
-Write your tutor's strategy. You can change its **instructions**, its **tools** (a smaller set is a real design choice: try removing `quiz_run`, its only sensor), its **model**, and the **observability level** (1 follows the student's screen; 0 is not told what the student is doing).
+Write your tutor's strategy. You can change its **instructions**, its **tools** (a smaller set is a real design choice: try removing `quiz_run`, its only sensor), and its **model**.
 
 Scroll up to the desktop while it runs.
 """)
@@ -518,13 +519,12 @@ code(CHANGE + '''MY_TUTOR = dict(
                  "Don't send more than one message in a row without waiting for a reply.",
     model="gpt-5.4-mini",
     tools=None,          # e.g. [t.name for t in make_tools(env) if t.name != "quiz_run"]
-    level=None,          # None = the task's default (1: follows the student's screen); try 0 (not told)
 )
 ''' + END)
 code("""
 if have_model():
     mine = run_tutor(env, MY_TUTOR["instructions"], name=MY_TUTOR["name"], model=MY_TUTOR["model"],
-                     tools=MY_TUTOR["tools"], level=MY_TUTOR["level"], seed=1000)
+                     tools=MY_TUTOR["tools"], seed=1000)
 else:
     mine = next(r for r in runs if r.get("style") == "socratic")
     replay(env, mine, delay=1.0, verbose=False)
@@ -569,7 +569,7 @@ if have_model():
     for t in (MY_TUTOR, MY_TUTOR_V2):
         for s in STUDENTS:
             mixed.append(run_tutor(env, t["instructions"], name=t["name"], model=t["model"], tools=t["tools"],
-                                   level=None, seed=s, instance="friday-build-01-mixed", quiet=True))
+                                   seed=s, instance="friday-build-01-mixed", quiet=True))
     print(len(mixed), "runs")
     display(compare_runs(mixed).sort_values(["student", "tutor"]))
 else:

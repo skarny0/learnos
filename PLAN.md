@@ -4,7 +4,7 @@ Phases are ordered by what unblocks the workshop. Each phase ends in something a
 could run. The Python env is the part that must exist regardless; the OS skin is polish.
 
 ## Phase 0 — scaffold (done)
-State models, 8 app modules (15 tools), seeded sim learner, grader with level gating, JSONL
+State models, 8 app modules (15 tools), seeded sim learner, token-gated grader, JSONL
 traces, FastAPI server with websocket feed, placeholder UI, client package with smolagents
 tool factory and pass@k/pass^k runner, 2 instances + a materials pack, smoke tests (5 pass).
 

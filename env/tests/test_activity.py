@@ -1,4 +1,4 @@
-"""Activity stream + feed: streamed to the agent at level 1 (not 0), noisy, never leaks hidden numbers."""
+"""Activity stream + feed: streamed to the agent, noisy, never leaks hidden numbers."""
 import json, random, tempfile
 from pathlib import Path
 import pytest
@@ -10,8 +10,8 @@ HIDDEN = ("p_know", "p_perf", "attention", "motivation", "reliance", "persistenc
           "off_task_streak", "feed_minutes", "phone_minutes", "persona", "tag", "misinfo")
 
 
-def test_level1_streams_activity_and_screen():
-    env = make(1)
+def test_activity_and_screen_are_streamed():
+    env = make()
     out = env.step("session_wait", {"minutes": 30})
     assert "[activity]" in out["output"]
     acts = out["observation"]["recent_activity"]
@@ -20,17 +20,8 @@ def test_level1_streams_activity_and_screen():
     assert out["observation"]["screen"]["app"] == acts[-1]["app"]
 
 
-def test_level0_is_not_told_what_the_student_does():
-    env = make(0)
-    out = env.step("session_wait", {"minutes": 30})
-    assert "[activity]" not in out["output"]
-    assert "screen" not in out["observation"] and "recent_activity" not in out["observation"]
-    assert env.state.workspace.student_activity                  # the tracker still ran; the tutor just isn't told
-
-
-@pytest.mark.parametrize("level", [0, 1])
-def test_observation_never_leaks_hidden_or_tags(level):
-    env = make(level)
+def test_observation_never_leaks_hidden_or_tags():
+    env = make()
     for a, kw in [("session_wait", {"minutes": 30}), ("quiz_run", {"concept": "pomdp", "n_items": 3}),
                   ("feed_scroll", {}), ("messages_send_to_student", {"text": "hi", "intent": "nudge", "concept": ""})]:
         out = env.step(a, kw)
@@ -40,7 +31,7 @@ def test_observation_never_leaks_hidden_or_tags(level):
 
 
 def test_reading_shows_up_as_reader_when_on_task():
-    env = make(1)
+    env = make()
     out = env.step("reader_open_section", {"path": "/course/readings/week3/environments.md",
                                            "section": "Partial observability (POMDP)", "concept": "pomdp"})
     assert {a["app"] for a in out["observation"]["recent_activity"]} <= {"reader", "feed", "idle"}
@@ -80,7 +71,7 @@ def test_off_task_reading_learns_less():
 
 
 def test_feed_scroll_mute_and_audit():
-    env = make(1)
+    env = make()
     out = env.step("feed_scroll", {"n": 20})["output"]
     assert "@peer_b" in out and "misinfo" not in out
     assert "No such source" in env.step("feed_mute", {"source": "#nope"})["output"]
@@ -102,7 +93,7 @@ def test_scheduled_post_arrives_mid_episode():
 
 
 def test_feed_is_static_without_events():
-    env = make(1)
+    env = make()
     n = len(env.state.workspace.feed)
     env.step("session_wait", {"minutes": 60})
     assert len(env.state.workspace.feed) == n
@@ -132,7 +123,7 @@ def test_plugin_rule_runs_seeded_and_is_hidden():
     try:
         a = dynamics.init_learner(["c"], 3); b = dynamics.init_learner(["c"], 3)
         assert a.extra == b.extra and 0.2 <= a.extra["skepticism"] <= 0.6
-        env = make(0)
+        env = make()
         env.step("quiz_run", {"concept": "pomdp", "n_items": 2})
         assert env.state.learner.extra["skepticism"] > env.state.baseline_learner.extra["skepticism"]
         out = env.step("session_wait", {"minutes": 30})

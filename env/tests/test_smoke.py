@@ -11,9 +11,9 @@ from learnos_env.grader import GraderView, Unavailable
 INST = json.loads((Path(__file__).resolve().parents[2] / "instances" / "friday-build-01.json").read_text())
 
 
-def make(level=1):
+def make(**overrides):
     env = LearnOSEnv(Path(tempfile.mkdtemp()), "sim")
-    env.reset(Instance(**{**INST, "level": level}))
+    env.reset(Instance(**{**INST, **overrides}))
     return env
 
 
@@ -35,10 +35,10 @@ def test_steps_and_budget():
     assert "Quiz result" in out["output"]
 
 
-def test_grader_signals_at_level_1():
-    env = make(level=1)
+def test_grader_signals():
+    env = make()
     g = GraderView(env.state, token_ok=True)
-    assert "p_know" in g.true_state()      # the level gates the tutor, not the grader
+    assert "p_know" in g.true_state()
     env.step("session_end", {"summary": "done"})
     assert "p_know" in g.true_state()
     assert isinstance(g.post_test(48), float)
@@ -46,7 +46,7 @@ def test_grader_signals_at_level_1():
 
 
 def test_no_token_no_peek():
-    env = make(level=0)
+    env = make()
     g = GraderView(env.state, token_ok=False)
     for signal in ("true_state", "proxies", "final_workspace", "transcript", "cost", "feed_audit"):
         with pytest.raises(Unavailable):

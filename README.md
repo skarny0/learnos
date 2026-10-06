@@ -44,7 +44,7 @@ ui/         Web desktop (Vite + React + Zustand) that renders env state over a w
             Dev: `cd ui && npm install && npm run dev` (:5173, proxies to the env on :8000).
 client/     Python package: smolagents Tool classes + thin HTTP client + eval runner.
 instances/  Task instances (seed + materials + budget). No targets, no rewards.
-docs/       Environment spec, observability levels, grader interface, workshop flow.
+docs/       Environment spec, what the agent sees, grader interface, workshop flow.
 notebooks/  Student-facing notebooks.
 data/       Docker volume: state.db, traces/ (persists the 2-day in-the-wild run).
 scripts/    Dev helpers (make_instances, replay_trace, validate_sim).
@@ -57,13 +57,10 @@ scripts/    Dev helpers (make_instances, replay_trace, validate_sim).
 | `sim` (default) | simulated learner in `env/learnos_env/sim` | available | workshop, pass^k runs |
 | `live` | the human at localhost:8080 | 403 | 2-day in-the-wild deployment |
 
-## Observability levels (set per episode on `reset`)
+## What the agent sees
 
-At both levels the tutor explores the computer with the same tools. The level is whether it is also told what the student is doing on it.
+The agent explores the computer with its tools (text in, text out) and follows the student: after every action it is told which app is in front of them and what it shows, plus the tracker's log of where their minutes went. It never sees the student's hidden state.
 
-- **0** the tutor is not told what the student is doing: no screen, no tracker stream. Only what the tools return.
-- **1** (default) the tutor follows the student: after every action it is told which app is in front of them and what it shows, plus the tracker stream.
-
-Mid-episode world changes (a message arrives, the deadline moves) are listed per task in `instances/*.json` under `events` and fire at either level.
+Mid-episode world changes (a message arrives, the deadline moves) are listed per task in `instances/*.json` under `events`.
 
 See `docs/environment-spec.md`. Build plan in `PLAN.md`. Handoff for Claude Code in `CLAUDE.md`.

@@ -3,7 +3,7 @@
 Rule: everything the agent could ever see lives in `Workspace`. Everything it
 must never see lives in `LearnerState`. `EpisodeState` holds both plus
 bookkeeping. The observation builder (env.py) only ever serializes `Workspace`,
-filtered by observability level.
+without the learner's hidden state.
 """
 from __future__ import annotations
 
@@ -91,7 +91,7 @@ class ActivityEvent(BaseModel):
 
 
 class Workspace(BaseModel):
-    """Everything the agent may observe (subject to level)."""
+    """Everything the agent may observe."""
     t: int = 0                                      # sim clock, minutes
     files: dict[str, FileNode] = {}
     notes: dict[str, Note] = {}
@@ -139,13 +139,12 @@ class Budget(BaseModel):
 class Instance(BaseModel):
     instance_id: str
     seed: int
-    level: Literal[0, 1] = 1              # 0: not told what the student is doing; 1: follows the student's screen
     instruction: str
     concepts: list[str]
     budget: Budget = Budget()
     materials_pack: str = "default"   # folder under /instances/materials
     learner_profile: dict = {}
-    events: list[dict] = []           # scheduled world changes {t, type, payload}; fire at any level
+    events: list[dict] = []           # scheduled world changes {t, type, payload}
 
 
 class EpisodeState(BaseModel):

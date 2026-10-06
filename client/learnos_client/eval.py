@@ -34,7 +34,6 @@ def _episode_span(instance: dict, episode_id: str, config: str):
         "langfuse.trace.metadata.episode_id": episode_id,
         "langfuse.trace.metadata.instance_id": instance["instance_id"],
         "langfuse.trace.metadata.seed": instance["seed"],
-        "langfuse.trace.metadata.level": instance.get("level", 1),
         "learnos.episode_id": episode_id,
     }
     with trace.get_tracer("learnos").start_as_current_span("learnos.episode", attributes=attrs) as span:
@@ -59,19 +58,16 @@ def agent_metrics(agent) -> dict:
 
 
 def task_text(instance: dict, obs: dict) -> str:
-    """What the agent is given at the start: the instruction, the budget, and (at level 1) the student's screen.
+    """What the agent is given at the start: the instruction, the budget, and the student's screen.
     smolagents passes the model only this text and tool outputs, so this is the whole first observation."""
     out = [instance["instruction"], ""]
     b = obs.get("budget", {})
     out.append(f"Session: {obs.get('t', 0)} of {b.get('learner_minutes')} student-minutes used, "
                f"{obs.get('step', 0)} of {b.get('agent_steps')} steps used.")
-    if obs.get("screen"):                                 # level 1: the tutor follows the student's screen
-        out.append(f"Student's screen right now: {obs['screen']['app']}: {obs['screen']['shows']}")
-        out.append("You see what is on the student's screen (updated after every action). "
-                   "Anything else on their computer you have to open with the tools.")
-    else:                                                 # level 0: not told what the student is doing
-        out.append("You are not told what the student is doing on their computer. "
-                   "Everything you learn comes from what the tools return.")
+    scr = obs.get("screen") or {}
+    out.append(f"Student's screen right now: {scr.get('app')}: {scr.get('shows')}")
+    out.append("You see what is on the student's screen (updated after every action). "
+               "Anything else on their computer you have to open with the tools.")
     out.append(obs.get("hint", ""))
     if obs.get("unread_messages"):
         out.append(f"Unread messages: {obs['unread_messages']}.")

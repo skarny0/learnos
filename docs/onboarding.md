@@ -39,7 +39,7 @@ API docs: http://localhost:8000/docs.
 |---|---|
 | a tool / app (what the agent can do) | `env/learnos_env/apps/*.py`: one function plus a decorator, auto-registered |
 | how the student responds | `env/learnos_env/sim/dynamics.py`: the **only** place hidden state changes |
-| what the agent observes | `env/learnos_env/env.py` (`observe`, levels 0/1) |
+| what the agent observes | `env/learnos_env/env.py` (`observe`) |
 | what the grader exposes | `env/learnos_env/grader.py` (token-gated signals, never a score) |
 | a task: materials, deadlines, mid-episode events | `instances/*.json`, `instances/materials/` |
 | the desktop | `ui/src/` (React; `make ui` rebuilds into `env/learnos_env/ui_dist`) |

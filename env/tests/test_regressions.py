@@ -7,7 +7,7 @@ from learnos_env.state import QuizResult
 
 
 def test_quiz_log_is_typed_and_has_no_mood():
-    env = make(0)
+    env = make()
     with warnings.catch_warnings():
         warnings.simplefilter("error")                 # pydantic serializer warnings fail the test
         env.step("quiz_run", {"concept": "pomdp", "n_items": 3, "difficulty": 0.5})
@@ -17,7 +17,7 @@ def test_quiz_log_is_typed_and_has_no_mood():
 
 
 def test_observe_reports_done():
-    env = make(1)
+    env = make()
     assert env.observe()["done"] is False
     env.step("session_end", {"summary": "x"})
     obs = env.observe()
@@ -25,20 +25,20 @@ def test_observe_reports_done():
 
 
 def test_invalid_actions_consume_budget():
-    env = make(1)
+    env = make()
     for _ in range(INST["budget"]["agent_steps"]):
         env.step("nope_x", {})
     assert env.state.done and env.state.termination == "step_budget"
 
 
 def test_bad_args_reported_not_raised():
-    env = make(1)
+    env = make()
     out = env.step("files_ls", {"pth": "/course"})
     assert out["output"].startswith("Bad arguments") and out["step"] == 1
 
 
 def test_calendar_overlap_uses_absolute_time():
-    env = make(0)
+    env = make()
     env.step("session_wait", {"minutes": 60})
     env.step("session_wait", {"minutes": 10})          # t=70, lecture runs 60..150
     out = env.step("calendar_add_block", {"title": "x", "start": 0, "duration": 30, "concept": "pomdp"})
@@ -54,7 +54,7 @@ def test_each_reset_gets_its_own_trace():
 
 
 def test_trace_logs_hidden_state_and_episode_end():
-    env = make(1)
+    env = make()
     env.step("session_end", {"summary": "x"})
     recs = [json.loads(l) for l in env.trace.path.read_text().splitlines()]
     assert recs[0]["type"] == "episode_start" and recs[-1]["type"] == "episode_end"
@@ -67,7 +67,7 @@ def _demo(minutes=90):
     from learnos_env.env import LearnOSEnv
     from learnos_env.state import Instance
     d = json.load(open(Path(__file__).resolve().parents[2] / "instances" / "friday-build-01.json"))
-    d.update(level=0, budget={"agent_steps": 40, "learner_minutes": minutes, "sessions": 1})
+    d.update(budget={"agent_steps": 40, "learner_minutes": minutes, "sessions": 1})
     e = LearnOSEnv(Path(tempfile.mkdtemp()), "sim"); e.reset(Instance(**d)); return e
 
 
@@ -99,7 +99,7 @@ def test_unknown_intent_counts_as_other():
 
 
 def test_screen_shows_what_is_in_front_of_the_student():
-    env = make(1)
+    env = make()
     scr = env.observe()["screen"]
     assert scr["app"] == "messages"                         # they start in the chat where they asked for help
     out = env.step("reader_open_section", {"path": "/course/readings/week3/environments.md",

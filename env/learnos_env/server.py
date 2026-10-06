@@ -40,7 +40,7 @@ def _ui_payload() -> dict | None:
     st = env.state
     return {"workspace": st.workspace.model_dump(), "episode_id": env.trace.episode_id, "step": st.step, "done": st.done,
                "termination": st.termination, "mode": MODE, "instance_id": st.instance.instance_id,
-               "level": st.instance.level, "budget": st.instance.budget.model_dump(),
+               "budget": st.instance.budget.model_dump(),
                "agent_opened": sorted(env.opened), "action_log": env.action_log[-50:]}
 
 

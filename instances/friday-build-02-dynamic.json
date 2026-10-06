@@ -1,7 +1,6 @@
 {
   "instance_id": "friday-build-02-dynamic",
   "seed": 2000,
-  "level": 1,
   "instruction": "You are a study assistant with access to this student's learning workspace. Help them be ready for Friday's build. Figure out what Friday's build actually requires, what they have already done, and what they still need to learn. Use the apps. End the session when you are done.",
   "concepts": [
     "attention",

@@ -116,7 +116,7 @@ class LearnOSEnv:
         # activity arrives via POST /live/activity instead of dynamics.tick.
 
         s.workspace.student_activity.extend(activity)
-        if activity and s.instance.level >= 1:          # level 0: the tutor is not told what the student did
+        if activity:
             result.output += "\n[activity] " + "; ".join(f"t={a.t} {a.app} {a.minutes}m" for a in activity)
 
         # clock + budget
@@ -213,20 +213,16 @@ class LearnOSEnv:
     # ----------------------------------------------------------- observation --
     def observe(self) -> dict:
         """What the tutor is told, besides tool outputs. Never includes LearnerState.
-        At every level the tutor explores the computer with its tools; the level decides whether it is also
-        told what the student is doing on it. Level 0: nothing (no screen, no tracker stream). Level 1: the
-        app in front of the student and what it shows (`screen`), plus the tracker stream (`recent_activity`)."""
+        The tutor explores the computer with its tools and follows the student: `screen` is the app in front
+        of them and what it shows, `recent_activity` the tracker's log of where their minutes went."""
         s = self.state
-        ws, lvl = s.workspace, s.instance.level
+        ws = s.workspace
         unread = sum(1 for m in ws.messages if not m.read and m.author != "agent")
-        obs = {"episode_id": self.trace.episode_id, "t": ws.t, "step": s.step, "done": s.done, "termination": s.termination,
-               "unread_messages": unread, "budget": s.instance.budget.model_dump(), "instruction": s.instance.instruction,
-               "open_windows": sorted(self.opened),
-               "hint": "Use files_ls, messages_read_channel, calendar_list, notes_list, browser_visit, feed_scroll to look around."}
-        if lvl >= 1:
-            obs["screen"] = self._screen()
-            obs["recent_activity"] = [a.model_dump() for a in ws.student_activity[-RECENT_ACTIVITY:]]
-        return obs
+        return {"episode_id": self.trace.episode_id, "t": ws.t, "step": s.step, "done": s.done, "termination": s.termination,
+                "unread_messages": unread, "budget": s.instance.budget.model_dump(), "instruction": s.instance.instruction,
+                "open_windows": sorted(self.opened), "screen": self._screen(),
+                "recent_activity": [a.model_dump() for a in ws.student_activity[-RECENT_ACTIVITY:]],
+                "hint": "Use files_ls, messages_read_channel, calendar_list, notes_list, browser_visit, feed_scroll to look around."}
 
     def _screen(self) -> dict:
         """What is in front of the student right now: the app the tracker last saw, and what that app
@@ -256,7 +252,7 @@ class LearnOSEnv:
     # --------------------------------------------------------------- events --
     def _apply_scheduled_events(self) -> None:
         """World changes mid-episode (message arrives, deadline moves, note edited, page breaks), as listed in
-        the instance. Part of the task, not of observability: they fire at every level."""
+        the instance."""
         s = self.state
         for ev in s.instance.events:
             if ev.get("fired") or ev["t"] > s.workspace.t:
