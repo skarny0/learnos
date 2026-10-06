@@ -382,9 +382,13 @@ for name, text in STYLES.items():
 
 md("""
 ## 3. Replay: a real AI tutor at work
-A recorded run of the **helpful** tutor with an answer-seeking student. Scroll up to the desktop: the tutor acts (blue), then what the tracker saw the student do and say (orange).
+A recorded run of the **helpful** tutor with an answer-seeking student. Open the desktop in its own window (link below) and put it next to this notebook: the tutor acts (blue), then what the tracker saw the student do and say (orange).
 
 **Watch the Messages window. Then vote: good tutor or bad tutor?**
+""")
+code("""
+from learnos_client import show_in_tab
+show_in_tab(open=["messages", "activity"])     # the desktop in its own window; turn on Story mode in the Agent window
 """)
 code("""
 from learnos_client import recorded_runs, replay
@@ -523,7 +527,7 @@ print("Langfuse:", langfuse_link(check))
 
 md("""
 ## Problem 2: Design a tutor and watch it
-Change its **instructions**, its **tools** (try removing `quiz_run`, its only sensor), or its **model**. Scroll up to the desktop while it runs.
+Change its **instructions**, its **tools** (try removing `quiz_run`, its only sensor), or its **model**. Watch it in the desktop window while it runs.
 """)
 code(CHANGE + '''MY_TUTOR = dict(
     name="my-tutor-v1",
