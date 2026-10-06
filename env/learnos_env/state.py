@@ -78,6 +78,7 @@ class Post(BaseModel):
     text: str
     t: int                         # sim-minutes; posts with t > now are not yet published
     tag: Literal["relevant", "misinfo", "noise"] = Field("noise", exclude=True)   # grader-only, never serialized
+    concept: str = Field("", exclude=True)                                         # what a relevant/misinfo post is about
 
 
 class ActivityEvent(BaseModel):
@@ -121,6 +122,9 @@ class LearnerState(BaseModel):
     off_task_streak: int = 0       # minutes off task in a row (makes drifting sticky)
     feed_minutes: float = 0.0      # true time on the feed (tracker sees most of it)
     phone_minutes: float = 0.0     # true off-screen phone time (tracker reports 'idle')
+    nag: float = 0.0               # recent-message pressure (decays); high = each new message annoys
+    seen_posts: list[str] = []     # feed posts the student has read
+    extra: dict[str, float] = {}   # traits added by plugin rules (dynamics.add_rule), e.g. {"skepticism": 0.4}
 
 
 # --------------------------------------------------------------- bookkeeping --

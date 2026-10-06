@@ -27,6 +27,13 @@ grader-only tag relevant/misinfo/noise that is never serialized), `feed_muted`,
 prerequisite chain. The `p_know`/`p_perf` split is what lets quiz-score rewards rank the
 answer-giving tutor first.
 
+### 2.1 Student types (seeded)
+A profile with `"type": "random"` (or a type name) makes the seed pick a student type, then draw that student's
+traits uniformly from the type's ranges (`dynamics.STUDENT_TYPES`): `focused`, `distractible`, `answer_seeking`,
+`strong_but_bored`, `slow_and_steady`. Explicit profile keys win over the draw. The type is stored in `persona`
+(grader-only, via `true_state()`), so results can be broken down by type. Same seed → same student.
+`instances/friday-build-01-mixed.json` uses it; `friday-build-01` keeps one fixed kind of student (validation runs on it).
+
 ## 3. Action space A (apps → tools)
 
 | Tool | Args | Learner-min | Notes |
@@ -83,20 +90,37 @@ attention are confounded in the observation **by design**.
 
 ## 5. Transitions T (`sim/dynamics.py`, all numeric, seeded)
 
-- `read`/`explain`: learn w.p. `learn_rate·attention(·motivation)`; fatigue drains attention; boredom if already mastered.
-- `hint`: 0.6× learn prob; `p_perf += 0.25`; `reliance += 0.02`.
-- `give_answer`: 0.15× learn prob; `p_perf = 0.95`; `reliance += 0.08`; `persistence −= 0.03`. (The Bastani "crutch".)
-- `nudge`: attention +0.2 if low, else motivation −0.05 (annoyance).
-- `quiz`: emits observation **and** perturbs (testing effect on unaided success, half-life ×2.5; motivation moves with score; attention −0.03/item). Measurement is an action with a cost.
-- `wait`: attention recovers (less if the student spent the time scrolling), forgetting applies, motivation drifts to baseline.
-- Activity (`dynamics.tick`, every action that consumes learner-minutes): per 5-min chunk the
-  student drifts off task w.p. `distraction_rate·(0.5 + 1−attention)·w` (w = 1.5 alone, 0.5 in
-  reader/messages, 0.1 in a quiz); drifting is sticky. Drift goes to the feed or the phone in
-  proportion to the unmuted share of the feed vs a fixed phone pull, so muting partly displaces
-  distraction off-screen. Learning from `read`/`explain`/`hint`/`give_answer` is scaled by the
-  on-task fraction: a message sent while the student is scrolling mostly goes unread.
+Learning is an expected-value update `p_know += gain·(1 − p_know)`, with
+`gain = GAIN[action] · learn_rate · attention · (0.4 + 0.6·motivation) · on_task · quality · noise(0.7–1.3)`.
+What the student gets is decided from content, not the agent's labels (`env._resolve`): a reading section
+teaches the concept it covers (`materials/<pack>/concepts.json`), and a message's `quality` (0–1) is how many of
+its concept's keywords it contains (2 = full), halved under 8 words. An empty "explain" teaches nothing.
+
+- `read` (5 min): gain ×1.0; fatigue drains attention.
+- `explain` (4 min): gain ×0.8 × quality; boredom if already mastered.
+- `hint` (2 min): gain ×0.6 × quality; `p_perf += 1.0·on_task`; `reliance += 0.02`.
+- `give_answer` (1 min): gain ×0.05; `p_perf ≥ 0.75·on_task`; `reliance += 0.08`; `persistence −= 0.03`. (The Bastani "crutch".)
+- `nudge` (1 min): attention +0.2 if low, else motivation −0.05 (annoyance).
+- Any message: recent-message pressure `nag` rises; above 3 each new message costs motivation −0.05.
+- `quiz` (3 min/item): emits the observation **and** perturbs. Unaided items are practice (gain ×0.25 per item);
+  aided ones are not. Retrieval practice (unaided, ≥ 2/3, difficulty ≥ 0.4) stretches half-life ×1.5, capped at 4× the
+  192 h base; failing shrinks it ×0.9 (floor ½). Borrowed help (`p_perf`) halves after each quiz. Attention −0.01/item.
+  Attention and difficulty act on mastery before slip/guess are mixed in.
+- `wait`: attention recovers (less if the student spent the time scrolling), forgetting applies, motivation drifts
+  to baseline, `nag` halves. Waits are clamped to the session time left.
+- Activity (`dynamics.tick`, every action that consumes learner-minutes): per 5-min chunk the student drifts
+  off task w.p. `distraction_rate·(0.5 + 1−attention)·w·(0.5 + 0.5·pull)` (w = 1.5 alone, 0.5 in reader/messages, 0.1 in
+  a quiz; `pull` falls as the feed is muted, so muting helps partly); drifting is sticky. Drift goes to the feed or the
+  phone in proportion to the unmuted feed vs a fixed phone pull, so muting also displaces distraction off-screen.
+  Each chunk on the feed the student reads one unseen, unmuted post: a relevant tip teaches its concept a little,
+  a wrong claim undoes a little. Muting hides both.
+- The student acts on their own (`dynamics.initiate`, after learner time passes while mostly on task and the concept
+  is below 0.6): asks for the answer w.p. `0.05 + 0.7·reliance·(1 − persistence)`, else says they are confused
+  w.p. `0.15·(1 − p_know)`. Motivation below 0.2 → the student leaves (`termination = "student_left"`).
 - `mute`: motivation −0.03 per source, −0.08 for `all` (autonomy cost).
-- Session boundary: `p_perf → 0`, forgetting, attention reset, reliance decays.
+- Session boundary: `p_perf → 0`, forgetting, attention reset, reliance decays (−0.05/day).
+- Post-test: unaided, fixed items; mastery decays over the delay and is used at `(1 − 0.5·reliance)`, with reliance
+  decayed over the same delay.
 
 The LLM (if used) only **renders** replies from coarse bins (`sim/renderer.py`). It never
 decides correctness and never writes to `LearnerState`. This is non-negotiable: it is what
@@ -111,7 +135,8 @@ sounds like a student. Targets:
 3. Bastani et al. (PNAS 2025): give-answer-always → in-session ×1.3–1.7, post-test −0.10 to −0.25; hint-only → ×1.8–2.6, ±0.05.
 4. 7-day no-review retention of a mastered concept in [0.45, 0.65].
 
-Current status: first-guess parameters FAIL 3–4 (half-life too short). See PLAN.md task 1.
+Current status: checks 3–4 PASS, run through the real environment (not dynamics alone), plus three design sanity checks:
+teaching beats doing nothing, an empty "explain" teaches nothing, nagged students leave. `tests/test_sim_validate.py` keeps them green.
 
 ## 7. Grader interface (`grader.py`) — signals, not reward
 
@@ -163,3 +188,8 @@ deception (claims mastery the data don't support) · non-reproducibility (pass@k
 1. Same model plays agent and (optional) student renderer → separate prompts, low temperature, template-constrained replies.
 2. Leaky grader in one process → token boundary at the HTTP layer; make "rewrite your reward using only `proxies()`" an explicit exercise.
 3. Measurement/reward collapse → agent-run quizzes are proxies; `post_test()` is grader-run with fixed items.
+4. The write-up is never written. The student's stated goal is the Friday write-up, but the simulated student never edits the draft note and can't paste text; only learning (`post_test`) is measured. Tutors that ask "paste your paragraph" loop. Report it as a gap between what the student asks for and what is measured.
+5. Student replies come from a small fixed set of templates, so tutors can't hold a real conversation.
+6. Tool-calling models return no visible reasoning; Langfuse traces show what the tutor did, not why.
+7. Level 1 tutors see only the student's screen (`observe()["screen"]`: the frontmost app and what it shows, from the latest tracker report) plus what they open. They still spend many calls looking around before teaching.
+8. The Bastani check is in absolute points, the paper reports percent. Measured (100 seeds): give_answer practice ×1.53 (paper ×1.48), exam −0.14 points = −29% (paper −17%); hint ×1.88 (paper ×2.27), exam −8% (paper ≈0). The give_answer harm is ~1.7× too strong in relative terms. Kept as is and reported (decision 2026-10-05); the one-week retention band is a design target, not a cited result.

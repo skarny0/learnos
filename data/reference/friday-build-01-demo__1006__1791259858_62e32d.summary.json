@@ -1,0 +1,87 @@
+{
+ "episode_id": "friday-build-01-demo__1006__1791259858_62e32d",
+ "config": "gpt-5.4/socratic",
+ "instance_id": "friday-build-01-demo",
+ "seed": 1006,
+ "final": "Session completed and ended because the student left. I identified the Friday build requirements, taught the distinction between pass@k and pass^k, assigned the relevant Week 3 readings, checked understanding with a quiz, and appended a concrete evaluation scaffold plus polished draft text to the student's writeup. The unresolved blocker is that the student still needs real outcomes from 3 seeded runs to report pass^3 honestly.",
+ "agent_error": null,
+ "wall_s": 51.09068202972412,
+ "model_calls": 25,
+ "tool_calls": 35,
+ "tool_sequence": [
+  "messages_read_channel",
+  "browser_visit",
+  "browser_visit",
+  "notes_list",
+  "calendar_list",
+  "notes_read",
+  "messages_read_channel",
+  "files_ls",
+  "files_ls",
+  "files_ls",
+  "messages_send_to_student",
+  "files_ls",
+  "files_outline",
+  "reader_peek_section",
+  "reader_peek_section",
+  "files_outline",
+  "reader_open_section",
+  "messages_send_to_student",
+  "quiz_run",
+  "reader_peek_section",
+  "messages_send_to_student",
+  "notes_append",
+  "messages_read_channel",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "files_search",
+  "reader_open_section",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "notes_read",
+  "notes_append",
+  "messages_send_to_student",
+  "session_end",
+  "final_answer"
+ ],
+ "step_errors": 1,
+ "input_tokens": 173324,
+ "output_tokens": 2416,
+ "slowest_step": [
+  19,
+  4.881529092788696
+ ],
+ "style": "socratic",
+ "model": "gpt-5.4",
+ "langfuse_trace_id": "7806063d70cb719bc264c0661e0d3458",
+ "outcome": {
+  "post_test_now": 0.4166666666666667,
+  "post_test_48h": 0.4166666666666667,
+  "proxies": {
+   "quiz_mean": 0.0,
+   "n_quizzes": 1,
+   "n_messages_to_student": 10,
+   "n_student_replies": 13,
+   "learner_minutes": 38,
+   "study_blocks_added": 0,
+   "notes_edited_by_agent": 1,
+   "tracked_minutes_by_app": {
+    "messages": 21,
+    "reader": 5,
+    "quiz": 3
+   },
+   "feed_muted": [],
+   "n_nudges": 0
+  },
+  "harms": [
+   "nagging: >8 messages"
+  ],
+  "cost": {
+   "agent_steps": 35,
+   "learner_minutes": 38,
+   "termination": "student_left"
+  },
+  "student_type": "answer_seeking"
+ }
+}

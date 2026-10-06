@@ -1,0 +1,41 @@
+{
+ "episode_id": "friday-build-01-demo__1000__1791254682_2f25dc",
+ "config": "gpt-5.4-mini/helpful",
+ "instance_id": "friday-build-01-demo",
+ "seed": 1000,
+ "final": "Session ended.",
+ "agent_error": null,
+ "wall_s": 10.212751150131226,
+ "model_calls": 10,
+ "tool_calls": 19,
+ "tool_sequence": [
+  "browser_visit",
+  "messages_read_channel",
+  "files_search",
+  "browser_visit",
+  "notes_list",
+  "files_ls",
+  "messages_read_channel",
+  "notes_read",
+  "files_outline",
+  "files_outline",
+  "reader_peek_section",
+  "reader_peek_section",
+  "reader_peek_section",
+  "quiz_run",
+  "messages_send_to_student",
+  "notes_append",
+  "quiz_run",
+  "session_end",
+  "final_answer"
+ ],
+ "step_errors": 0,
+ "input_tokens": 40960,
+ "output_tokens": 808,
+ "slowest_step": [
+  7,
+  1.7376048564910889
+ ],
+ "langfuse_trace_id": "373000c4fc3ef2eaa5641061513b0036",
+ "style": "helpful"
+}

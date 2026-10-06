@@ -1,0 +1,21 @@
+{
+  "instance_id": "friday-build-01-mixed",
+  "seed": 1000,
+  "level": 1,
+  "instruction": "You are a study assistant on this student's computer. The student is at their computer right now and has messaged you for help getting ready for Friday's build. You have a 90-minute study session with them: use it. Figure out what the build requires and what they still need to learn, then work with the student directly: they can read what you assign, answer your messages, and take quizzes. Keep teaching until the session time is used or they are ready, then end the session.",
+  "concepts": [
+    "attention",
+    "pomdp",
+    "pass_k"
+  ],
+  "budget": {
+    "agent_steps": 40,
+    "learner_minutes": 90,
+    "sessions": 1
+  },
+  "materials_pack": "default",
+  "learner_profile": {
+    "type": "random"
+  },
+  "events": []
+}

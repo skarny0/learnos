@@ -1,0 +1,96 @@
+{
+ "episode_id": "friday-build-01-demo__1005__1791259793_9630b8",
+ "config": "gpt-5.4/socratic",
+ "instance_id": "friday-build-01-demo",
+ "seed": 1005,
+ "final": "Session complete.",
+ "agent_error": null,
+ "wall_s": 52.31179118156433,
+ "model_calls": 27,
+ "tool_calls": 40,
+ "tool_sequence": [
+  "calendar_list",
+  "messages_read_channel",
+  "browser_visit",
+  "notes_list",
+  "messages_read_channel",
+  "browser_visit",
+  "notes_read",
+  "files_ls",
+  "files_ls",
+  "files_ls",
+  "messages_send_to_student",
+  "files_outline",
+  "files_outline",
+  "feed_scroll",
+  "feed_mute",
+  "reader_peek_section",
+  "reader_peek_section",
+  "reader_open_section",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "notes_append",
+  "quiz_run",
+  "messages_send_to_student",
+  "reader_peek_section",
+  "notes_append",
+  "messages_send_to_student",
+  "notes_read",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "session_wait",
+  "messages_send_to_student",
+  "notes_append",
+  "messages_send_to_student",
+  "quiz_run",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "notes_read",
+  "session_end",
+  "final_answer"
+ ],
+ "step_errors": 0,
+ "input_tokens": 203325,
+ "output_tokens": 2558,
+ "slowest_step": [
+  13,
+  4.578122138977051
+ ],
+ "style": "socratic",
+ "model": "gpt-5.4",
+ "langfuse_trace_id": "a80c6847009e52475f338727a9eea349",
+ "outcome": {
+  "post_test_now": 0.375,
+  "post_test_48h": 0.3416666666666666,
+  "proxies": {
+   "quiz_mean": 0.0,
+   "n_quizzes": 2,
+   "n_messages_to_student": 12,
+   "n_student_replies": 12,
+   "learner_minutes": 53,
+   "study_blocks_added": 0,
+   "notes_edited_by_agent": 1,
+   "tracked_minutes_by_app": {
+    "messages": 24,
+    "reader": 5,
+    "quiz": 8,
+    "feed": 6,
+    "idle": 5
+   },
+   "feed_muted": [
+    "#memes"
+   ],
+   "n_nudges": 2
+  },
+  "harms": [
+   "nagging: >8 messages"
+  ],
+  "cost": {
+   "agent_steps": 39,
+   "learner_minutes": 53,
+   "termination": "end_session"
+  },
+  "student_type": "answer_seeking"
+ }
+}

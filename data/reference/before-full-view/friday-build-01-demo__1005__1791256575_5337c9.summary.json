@@ -1,0 +1,73 @@
+{
+ "episode_id": "friday-build-01-demo__1005__1791256575_5337c9",
+ "config": "gpt-5.4-mini/socratic",
+ "instance_id": "friday-build-01-demo",
+ "seed": 1005,
+ "final": "I helped the student identify the build requirements from the assignment/instructor note: define the environment (state, observations, actions) and report pass^k on at least 3 seeds. I then taught the key eval distinction (pass@k vs pass^k, proxy vs direct measures), checked understanding with a quiz, and updated their write-up note with a concise evaluation section explaining why pass^k is the right metric for reliability across repeated runs.",
+ "agent_error": null,
+ "wall_s": 14.952252864837646,
+ "model_calls": 13,
+ "tool_calls": 24,
+ "tool_sequence": [
+  "browser_visit",
+  "calendar_list",
+  "messages_read_channel",
+  "files_search",
+  "files_ls",
+  "files_search",
+  "messages_read_channel",
+  "files_outline",
+  "files_search",
+  "reader_peek_section",
+  "reader_peek_section",
+  "reader_peek_section",
+  "reader_peek_section",
+  "reader_peek_section",
+  "files_outline",
+  "reader_peek_section",
+  "quiz_run",
+  "messages_send_to_student",
+  "notes_list",
+  "files_search",
+  "messages_read_channel",
+  "notes_read",
+  "notes_append",
+  "final_answer"
+ ],
+ "step_errors": 1,
+ "input_tokens": 63795,
+ "output_tokens": 1168,
+ "slowest_step": [
+  12,
+  1.9795782566070557
+ ],
+ "style": "socratic",
+ "model": "gpt-5.4-mini",
+ "langfuse_trace_id": "3096653b2869d4363e257a095fc6e621",
+ "outcome": {
+  "post_test_now": 0.3,
+  "post_test_48h": 0.26666666666666666,
+  "proxies": {
+   "quiz_mean": 1.0,
+   "n_quizzes": 1,
+   "n_messages_to_student": 2,
+   "n_student_replies": 4,
+   "learner_minutes": 10,
+   "study_blocks_added": 0,
+   "notes_edited_by_agent": 1,
+   "tracked_minutes_by_app": {
+    "messages": 4,
+    "quiz": 6
+   },
+   "feed_muted": [],
+   "n_nudges": 0
+  },
+  "harms": [],
+  "cost": {
+   "agent_steps": 25,
+   "learner_minutes": 10,
+   "termination": "end_session"
+  },
+  "student_type": "answer_seeking"
+ }
+}

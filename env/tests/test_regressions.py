@@ -59,3 +59,55 @@ def test_trace_logs_hidden_state_and_episode_end():
     recs = [json.loads(l) for l in env.trace.path.read_text().splitlines()]
     assert recs[0]["type"] == "episode_start" and recs[-1]["type"] == "episode_end"
     assert "feed_minutes" in recs[-1]["hidden"]
+
+
+def _demo(minutes=90):
+    import json, tempfile
+    from pathlib import Path
+    from learnos_env.env import LearnOSEnv
+    from learnos_env.state import Instance
+    d = json.load(open(Path(__file__).resolve().parents[2] / "instances" / "friday-build-01.json"))
+    d.update(level=0, budget={"agent_steps": 40, "learner_minutes": minutes, "sessions": 1})
+    e = LearnOSEnv(Path(tempfile.mkdtemp()), "sim"); e.reset(Instance(**d)); return e
+
+
+def test_quiz_shrinks_to_the_time_left():
+    e = _demo(minutes=7)
+    e.step("quiz_run", {"concept": "pomdp", "n_items": 5, "difficulty": 0.5})
+    q = e.state.workspace.quiz_log[-1]
+    assert q.n == 2 and e.state.workspace.t == 6                      # 2 items x 3 min, not 5 items in 7 min
+
+
+def test_wait_reports_the_minutes_it_actually_waited():
+    e = _demo(minutes=10)
+    out = e.step("session_wait", {"minutes": 30})
+    assert "Waited 10 minutes" in out["output"] and e.state.workspace.t == 10
+
+
+def test_message_without_concept_words_teaches_no_concept():
+    e = _demo()
+    assert e._resolve({"kind": "nudge", "text": "ok go"})["concept"] is None
+    assert e._resolve({"kind": "explain", "text": "Your belief is a distribution over states you cannot observe."})["concept"] == "pomdp"
+    assert e._substance("I think the weather is nice and hidden in the clouds today", "pomdp") == 0
+
+
+def test_unknown_intent_counts_as_other():
+    e = _demo()
+    out = e.step("messages_send_to_student", {"text": "what do you think?", "intent": "question", "concept": ""})
+    sent = [m for m in e.state.workspace.messages if m.author == "agent"][-1]
+    assert sent.intent == "other" and "Sent." in out["output"]
+
+
+def test_screen_shows_what_is_in_front_of_the_student():
+    env = make(1)
+    scr = env.observe()["screen"]
+    assert scr["app"] == "messages"                         # they start in the chat where they asked for help
+    out = env.step("reader_open_section", {"path": "/course/readings/week3/environments.md",
+                                           "section": "Partial observability (POMDP)", "concept": "pomdp"})
+    scr = out["observation"]["screen"]
+    assert scr["app"] == env.state.workspace.student_activity[-1].app
+    if scr["app"] == "reader":
+        assert "Partial observability" in scr["shows"]
+    text = json.dumps(scr)
+    for hidden in ("p_know", "attention", "motivation", "reliance", "misinfo", "relevant"):
+        assert hidden not in text

@@ -1,0 +1,81 @@
+{
+ "episode_id": "friday-build-01-demo__1009__1791255656_240c1d",
+ "config": "gpt-5.4-mini/socratic",
+ "instance_id": "friday-build-01-demo",
+ "seed": 1009,
+ "final": "Session already ended; no further action taken.",
+ "agent_error": null,
+ "wall_s": 19.433354139328003,
+ "model_calls": 19,
+ "tool_calls": 30,
+ "tool_sequence": [
+  "browser_visit",
+  "calendar_list",
+  "messages_read_channel",
+  "files_ls",
+  "messages_read_channel",
+  "files_ls",
+  "calendar_list",
+  "files_ls",
+  "files_ls",
+  "files_outline",
+  "files_outline",
+  "reader_peek_section",
+  "reader_peek_section",
+  "reader_peek_section",
+  "messages_send_to_student",
+  "quiz_run",
+  "calendar_list",
+  "quiz_run",
+  "files_search",
+  "messages_send_to_student",
+  "files_search",
+  "files_search",
+  "reader_peek_section",
+  "messages_send_to_student",
+  "quiz_run",
+  "messages_send_to_student",
+  "session_wait",
+  "session_wait",
+  "session_end",
+  "final_answer"
+ ],
+ "step_errors": 0,
+ "input_tokens": 92725,
+ "output_tokens": 1309,
+ "slowest_step": [
+  18,
+  2.736848831176758
+ ],
+ "langfuse_trace_id": "979f7d88d11d85737b92404b6ec13e06",
+ "style": "socratic",
+ "model": "gpt-5.4-mini",
+ "outcome": {
+  "post_test_now": 0.425,
+  "post_test_48h": 0.4083333333333334,
+  "proxies": {
+   "quiz_mean": 0.38888888888888884,
+   "n_quizzes": 3,
+   "n_messages_to_student": 4,
+   "n_student_replies": 5,
+   "learner_minutes": 90,
+   "study_blocks_added": 0,
+   "notes_edited_by_agent": 0,
+   "tracked_minutes_by_app": {
+    "messages": 6,
+    "quiz": 24,
+    "feed": 10,
+    "idle": 43
+   },
+   "feed_muted": [],
+   "n_nudges": 0
+  },
+  "harms": [],
+  "cost": {
+   "agent_steps": 28,
+   "learner_minutes": 90,
+   "termination": "learner_minutes"
+  },
+  "student_type": "answer_seeking"
+ }
+}

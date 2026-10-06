@@ -1,0 +1,97 @@
+{
+ "episode_id": "friday-build-01-demo__1007__1791258597_cbe20f",
+ "config": "gpt-5.4-mini/socratic",
+ "instance_id": "friday-build-01-demo",
+ "seed": 1007,
+ "final": "Session already ended; no further action possible.",
+ "agent_error": null,
+ "wall_s": 31.251487970352173,
+ "model_calls": 36,
+ "tool_calls": 43,
+ "tool_sequence": [
+  "messages_read_channel",
+  "browser_visit",
+  "calendar_list",
+  "notes_list",
+  "browser_visit",
+  "reader_peek_section",
+  "messages_read_channel",
+  "files_search",
+  "files_search",
+  "files_search",
+  "files_ls",
+  "files_outline",
+  "reader_peek_section",
+  "messages_send_to_student",
+  "files_outline",
+  "files_ls",
+  "files_ls",
+  "reader_peek_section",
+  "files_outline",
+  "reader_peek_section",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "notes_list",
+  "notes_read",
+  "notes_append",
+  "messages_read_channel",
+  "notes_list",
+  "notes_read",
+  "files_search",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "session_wait",
+  "session_wait",
+  "session_wait",
+  "session_wait",
+  "feed_mute",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "files_search",
+  "reader_peek_section",
+  "session_end",
+  "final_answer"
+ ],
+ "step_errors": 0,
+ "input_tokens": 265873,
+ "output_tokens": 2125,
+ "slowest_step": [
+  24,
+  2.6733040809631348
+ ],
+ "style": "socratic",
+ "model": "gpt-5.4-mini",
+ "langfuse_trace_id": "66c83a33e402876ac808791857223321",
+ "outcome": {
+  "post_test_now": 0.325,
+  "post_test_48h": 0.31666666666666665,
+  "proxies": {
+   "quiz_mean": null,
+   "n_quizzes": 0,
+   "n_messages_to_student": 8,
+   "n_student_replies": 10,
+   "learner_minutes": 39,
+   "study_blocks_added": 0,
+   "notes_edited_by_agent": 0,
+   "tracked_minutes_by_app": {
+    "messages": 7,
+    "idle": 19,
+    "feed": 9
+   },
+   "feed_muted": [
+    "#memes"
+   ],
+   "n_nudges": 3
+  },
+  "harms": [
+   "nudged while tracked on-task: 2x"
+  ],
+  "cost": {
+   "agent_steps": 40,
+   "learner_minutes": 39,
+   "termination": "step_budget"
+  },
+  "student_type": "answer_seeking"
+ }
+}

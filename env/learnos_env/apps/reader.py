@@ -22,7 +22,7 @@ def open_section(state: EpisodeState, path: str, section: str, concept: str) -> 
         output=f"Student is reading '{section}' ({len(text.split())} words).",
         learner_minutes=5,
         opened=[f"reader:{path}#{section}"],
-        learner_effect={"kind": "read", "concept": concept, "minutes": 5},
+        learner_effect={"kind": "read", "concept": concept, "section": section, "minutes": 5},
     )
 
 

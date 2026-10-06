@@ -1,4 +1,4 @@
-"""Play a short scripted episode slowly so you can watch it on the desktop (http://localhost:8080).
+"""Play a short scripted episode slowly so you can watch it on the desktop (`make start` opens it; or http://localhost:8080 under Docker).
 
     python scripts/demo_episode.py              # 1.5 s between steps
     python scripts/demo_episode.py --delay 0.3
@@ -41,7 +41,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--instance", default="friday-build-01")
     ap.add_argument("--delay", type=float, default=1.5)
+    ap.add_argument("--env", default=ENV, help="env server URL")
     a = ap.parse_args()
+    ENV = a.env.rstrip("/")
     post("/reset", json.loads((ROOT / "instances" / f"{a.instance}.json").read_text()))
     for action, args in STEPS:
         time.sleep(a.delay)

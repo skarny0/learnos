@@ -6,15 +6,17 @@ import { clock } from "../time";
 export default function AgentLog() {
   const p = usePayload();
   const follow = useDesk((s) => s.follow);
+  const story = useDesk((s) => s.story);
   const end = useRef(null);
   const log = p?.action_log || [];
-  useEffect(() => end.current?.scrollIntoView({ block: "end" }), [log.length]);
+  useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [log.length]);
   if (!p) return <Empty>No episode.</Empty>;
 
   return (
     <div className="agentlog">
       <div className="toolbar">
-        <label><input type="checkbox" checked={follow} onChange={() => useDesk.getState().toggleFollow()} /> Follow agent (open the window it uses)</label>
+        <label><input type="checkbox" checked={story} onChange={() => useDesk.getState().toggleStory()} /> Story mode (tutor, then student)</label>
+        <label><input type="checkbox" checked={follow} onChange={() => useDesk.getState().toggleFollow()} /> Follow agent</label>
       </div>
       {log.length === 0 && <Empty>Waiting for the agent's first action…</Empty>}
       {log.map((e) => {

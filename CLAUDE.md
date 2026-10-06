@@ -38,7 +38,8 @@ human is the learner for 2 days).
 - Tests: `cd env && pytest`. Sim validation: `python -m learnos_env.sim.validate` (currently
   FAILs 4 of 5 on first-guess params; Phase 1 task 1 is to make it pass without breaking the
   Bastani bands).
-- Run the stack: `docker compose up`; API `:8000` (`/docs` for OpenAPI), UI `:8080`.
+- Run it: `make build` once, then `make start` (no Docker; desktop + API on `:8000`). `make` lists targets.
+  Docker: `make up` / `docker compose up`; API `:8000` (`/docs` for OpenAPI), UI `:8080`.
 - Set `LEARNOS_INSTANCES_DIR=../instances` when running env code outside Docker.
 - Every grader signal needs the token, including `proxies()` and `post_test()`.
 - `dynamics.tick` decides what the student does while learner-minutes pass; the tracker stream

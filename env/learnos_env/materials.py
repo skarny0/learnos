@@ -45,6 +45,13 @@ def load(pack: str, instance: Instance) -> Workspace:
     return ws
 
 
+def concepts(pack: str) -> dict:
+    """Sim-side knowledge about the pack's concepts (concepts.json): which reading sections teach
+    each one, and keywords a message needs to carry substance about it. Never shown to the agent."""
+    f = PACKS / pack / "concepts.json"
+    return json.loads(f.read_text()) if f.exists() else {}
+
+
 def apply_event(ws: Workspace, ev: dict) -> None:
     """L2 world changes. Types: message | move_deadline | edit_note | break_page | post"""
     t = ev["type"]
@@ -64,4 +71,4 @@ def apply_event(ws: Workspace, ev: dict) -> None:
         ws.pages.pop(p["url"], None)
     elif t == "post":
         ws.feed.append(Post(id=f"ev-p{len(ws.feed)+1}", source=p["source"], text=p["text"], t=ws.t,
-                            tag=p.get("tag", "noise")))
+                            tag=p.get("tag", "noise"), concept=p.get("concept", "")))

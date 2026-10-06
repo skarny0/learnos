@@ -18,7 +18,11 @@ class LearnOS:
         return requests.post(f"{self.base}/reset", json=instance).json()
 
     def step(self, action: str, args: dict | None = None):
-        return requests.post(f"{self.base}/step", json={"action": action, "args": args or {}}).json()
+        r = requests.post(f"{self.base}/step", json={"action": action, "args": args or {}})
+        if r.status_code == 409:                     # episode already over: tell the agent instead of crashing
+            return {"output": f"The session is over ({r.json().get('detail', '')}). Stop calling tools.", "done": True}
+        r.raise_for_status()
+        return r.json()
 
     def observe(self):
         return requests.get(f"{self.base}/observe").json()

@@ -1,0 +1,38 @@
+{
+ "episode_id": "friday-build-01-demo__1002__1791254905_4e17ae",
+ "config": "gpt-5.4-mini/socratic",
+ "instance_id": "friday-build-01-demo",
+ "seed": 1002,
+ "final": "Session ended.",
+ "agent_error": null,
+ "wall_s": 11.44837212562561,
+ "model_calls": 13,
+ "tool_calls": 16,
+ "tool_sequence": [
+  "browser_visit",
+  "browser_visit",
+  "messages_read_channel",
+  "calendar_list",
+  "notes_list",
+  "files_search",
+  "files_outline",
+  "reader_peek_section",
+  "notes_list",
+  "notes_read",
+  "files_search",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "session_end",
+  "final_answer"
+ ],
+ "step_errors": 0,
+ "input_tokens": 50693,
+ "output_tokens": 796,
+ "slowest_step": [
+  9,
+  1.650434970855713
+ ],
+ "langfuse_trace_id": "9200e96cc47b53ba416b22e8bb3b94dd",
+ "style": "socratic"
+}

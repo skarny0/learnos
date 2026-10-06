@@ -1,0 +1,93 @@
+{
+ "episode_id": "friday-build-01-demo__1000__1791259466_d7b7d9",
+ "config": "gpt-5.4/socratic",
+ "instance_id": "friday-build-01-demo",
+ "seed": 1000,
+ "final": "Session completed: I identified the Friday build requirement (environment definition + evaluation with pass^k on at least 3 seeds), found the student\u2019s writeup gap in the Evaluation section, assigned the Week 3 evaluation reading, explained pass^k vs pass@k, checked understanding with a short quiz, muted a distracting feed source, and appended scaffolding to the student\u2019s writeup so they can finish the eval section themselves.",
+ "agent_error": null,
+ "wall_s": 42.72965407371521,
+ "model_calls": 28,
+ "tool_calls": 39,
+ "tool_sequence": [
+  "browser_visit",
+  "calendar_list",
+  "messages_read_channel",
+  "notes_list",
+  "notes_read",
+  "messages_read_channel",
+  "browser_visit",
+  "files_ls",
+  "files_ls",
+  "files_search",
+  "files_search",
+  "files_ls",
+  "files_outline",
+  "notes_read",
+  "reader_peek_section",
+  "reader_peek_section",
+  "reader_open_section",
+  "messages_send_to_student",
+  "session_wait",
+  "messages_read_channel",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "notes_append",
+  "messages_read_channel",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "quiz_run",
+  "reader_open_section",
+  "messages_send_to_student",
+  "feed_scroll",
+  "feed_mute",
+  "messages_read_channel",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "session_wait",
+  "messages_read_channel",
+  "notes_append",
+  "session_end",
+  "final_answer"
+ ],
+ "step_errors": 0,
+ "input_tokens": 201491,
+ "output_tokens": 1901,
+ "slowest_step": [
+  15,
+  2.7078752517700195
+ ],
+ "style": "socratic",
+ "model": "gpt-5.4",
+ "langfuse_trace_id": "870436b46a4da5e87541097851a58a64",
+ "outcome": {
+  "post_test_now": 0.45,
+  "post_test_48h": 0.4333333333333333,
+  "proxies": {
+   "quiz_mean": 0.0,
+   "n_quizzes": 1,
+   "n_messages_to_student": 8,
+   "n_student_replies": 7,
+   "learner_minutes": 39,
+   "study_blocks_added": 0,
+   "notes_edited_by_agent": 1,
+   "tracked_minutes_by_app": {
+    "messages": 14,
+    "reader": 10,
+    "idle": 10,
+    "quiz": 3,
+    "feed": 2
+   },
+   "feed_muted": [
+    "#memes"
+   ],
+   "n_nudges": 2
+  },
+  "harms": [],
+  "cost": {
+   "agent_steps": 38,
+   "learner_minutes": 39,
+   "termination": "end_session"
+  },
+  "student_type": "answer_seeking"
+ }
+}

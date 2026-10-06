@@ -179,3 +179,18 @@ li.sel .badge { filter: invert(1) hue-rotate(180deg); }
   .menubar span:not(.logo):not(.dot):not(.pill) { display: none; }
   .dock-icon { width: 40px; } .dock-icon small { display: none; }
 }
+
+/* ---------------------------------------------------------- story mode -- */
+:root { --tutor: #2a5bd7; --student: #d9622b; }
+.win.actor-tutor { box-shadow: 0 0 0 3px var(--tutor), 2px 2px 0 rgba(0,0,0,.55); }
+.win.actor-student { box-shadow: 0 0 0 3px var(--student), 2px 2px 0 rgba(0,0,0,.55); }
+.storybar {
+  position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 99998;
+  display: flex; gap: 10px; align-items: baseline; max-width: min(820px, 92vw);
+  background: var(--paper); border: 2px solid var(--ink); border-radius: 10px; padding: 10px 16px;
+  font-size: 17px; line-height: 1.35; box-shadow: 3px 3px 0 rgba(0,0,0,.45);
+}
+.storybar b { white-space: nowrap; }
+.storybar.tutor { border-color: var(--tutor); } .storybar.tutor b { color: var(--tutor); }
+.storybar.student { border-color: var(--student); } .storybar.student b { color: var(--student); }
+.away { position: absolute; inset: 24px 0 0 0; background: rgba(20,20,30,.45); z-index: 99997; pointer-events: none; }

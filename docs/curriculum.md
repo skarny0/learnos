@@ -33,7 +33,7 @@ by `episode_id`).
   Diagnose bad runs as reasoning / tool output / prompt / infrastructure / **observation**.
 - **Observability skill:** read the two traces side by side, and find a run where the agent's view was wrong.
 - **Carries forward:** detectors and a list of failures they want gone.
-- **Status:** built (`notebooks/part5_observability.ipynb`).
+- **Status:** built, in `notebooks/learnos_workshop.ipynb` (Part A §5, Part B Problems 1 and 3).
 
 ## M2 — Write your own reward, then climb it
 - **Seed from M1:** the failures they listed. Now they have to turn "good tutoring" into code.
@@ -100,7 +100,7 @@ modules, so later sections can query back to earlier traces.
 | Setup: `start()` runs LearnOS in the kernel, `show()` embeds the desktop, Langfuse keys | — |
 | Part 1–2: reading, eval design (existing) | framing |
 | Part 3: build the agent | M0 |
-| Part 5: observability (`notebooks/part5_observability.ipynb`) | M1 |
+| Observability (`notebooks/learnos_workshop.ipynb`) | M1 |
 | Reward spec + hill-climbing | M2 |
 | Later sections | M3–M6 |
 

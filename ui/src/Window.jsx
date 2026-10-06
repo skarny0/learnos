@@ -1,10 +1,29 @@
-import { useRef } from "react";
+import { Component, useRef } from "react";
 import { useDesk } from "./store";
+import { useStory } from "./story";
+
+// One app crashing must not unmount the whole desktop: contain it to its own window.
+class Contain extends Component {
+  state = { error: null };
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div className="empty">
+        This window crashed: <code>{String(this.state.error.message || this.state.error)}</code>{" "}
+        <button onClick={() => this.setState({ error: null })}>Retry</button>
+      </div>
+    );
+  }
+}
 
 // System-7-style window: striped title bar (drag), close box, collapse box, resize corner.
 export default function Window({ id, title, children }) {
   const win = useDesk((s) => s.wins[id]);
   const focused = useDesk((s) => s.focused === id);
+  const actor = useStory((s) => (s.beat && s.beat.app === id ? s.beat.actor : null));
   const { focus, close, minimize, move } = useDesk.getState();
   const drag = useRef(null);
 
@@ -31,7 +50,7 @@ export default function Window({ id, title, children }) {
 
   return (
     <div
-      className={"win" + (focused ? " focused" : "")}
+      className={"win" + (focused ? " focused" : "") + (actor ? " actor-" + actor : "")}
       style={{ left: win.x, top: win.y, width: win.w, height: win.h, zIndex: win.z }}
       onPointerDown={() => focus(id)}
     >
@@ -40,7 +59,7 @@ export default function Window({ id, title, children }) {
         <span className="title">{title}</span>
         <button className="box collapse" title="Minimize" onPointerDown={(e) => e.stopPropagation()} onClick={() => minimize(id)} />
       </div>
-      <div className="body">{children}</div>
+      <div className="body"><Contain>{children}</Contain></div>
       <div className="grow" onPointerDown={(e) => startDrag(e, "resize")} />
     </div>
   );

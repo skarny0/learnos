@@ -95,6 +95,7 @@ export const useDesk = create((set, get) => ({
   wins: {},            // id -> { x, y, w, h, z, min }
   focused: null,
   follow: true,        // auto-open the window the agent just used
+  story: true,         // act each step out: tutor, then what the tracker saw the student do (story.js)
   open(id) {
     const a = APPS.find((x) => x.id === id);
     const cur = get().wins[id];
@@ -120,5 +121,8 @@ export const useDesk = create((set, get) => ({
   },
   toggleFollow() {
     set({ follow: !get().follow });
+  },
+  toggleStory() {
+    set({ story: !get().story });
   },
 }));

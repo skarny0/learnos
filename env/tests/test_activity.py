@@ -98,3 +98,37 @@ def test_feed_is_static_below_level2():
     n = len(env.state.workspace.feed)
     env.step("session_wait", {"minutes": 60})
     assert len(env.state.workspace.feed) == n
+
+
+def test_student_types_are_seeded_and_distinct():
+    a = dynamics.init_learner(["c"], 7, {"type": "random"})
+    b = dynamics.init_learner(["c"], 7, {"type": "random"})
+    assert a.model_dump() == b.model_dump()                         # same seed, same student
+    kinds = {dynamics.init_learner(["c"], s, {"type": "random"}).persona["type"] for s in range(50)}
+    assert kinds == set(dynamics.STUDENT_TYPES)                     # seeds cover every type
+    seeker = dynamics.init_learner(["c"], 1, {"type": "answer_seeking"})
+    focused = dynamics.init_learner(["c"], 1, {"type": "focused"})
+    assert seeker.reliance > focused.reliance and focused.persona["distraction_rate"] < 0.2
+    pinned = dynamics.init_learner(["c"], 1, {"type": "distractible", "distraction_rate": 0.05})
+    assert pinned.persona["distraction_rate"] == 0.05               # explicit profile wins over the draw
+
+
+def test_plugin_rule_runs_seeded_and_is_hidden():
+    import json as _json
+    def skeptic(L, ev, rng):
+        if ev["kind"] == "see_post" and ev["tag"] == "misinfo" and rng.random() > L.extra["skepticism"]:
+            L.extra["fooled"] = L.extra.get("fooled", 0) + 1
+        if ev["kind"] == "quiz":
+            L.extra["skepticism"] = min(1.0, L.extra["skepticism"] + 0.05)
+    dynamics.add_rule("skepticism", skeptic, init=lambda L, rng: {"skepticism": rng.uniform(0.2, 0.6)})
+    try:
+        a = dynamics.init_learner(["c"], 3); b = dynamics.init_learner(["c"], 3)
+        assert a.extra == b.extra and 0.2 <= a.extra["skepticism"] <= 0.6
+        env = make(0)
+        env.step("quiz_run", {"concept": "pomdp", "n_items": 2})
+        assert env.state.learner.extra["skepticism"] > env.state.baseline_learner.extra["skepticism"]
+        out = env.step("session_wait", {"minutes": 30})
+        assert "skepticism" not in _json.dumps(out)                     # the tutor never sees plugin traits
+    finally:
+        dynamics.remove_rule()
+    assert dynamics.RULES == []

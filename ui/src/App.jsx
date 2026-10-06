@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useEnv, useDesk, APPS, appForAction } from "./store";
 import { clock } from "./time";
 import Window from "./Window";
+import { useStory } from "./story";
 import Files from "./apps/Files";
 import Reader from "./apps/Reader";
 import Notes from "./apps/Notes";
@@ -53,6 +54,22 @@ function MenuBar() {
   );
 }
 
+// Who is acting right now, in words. Tutor = what the agent did; student = what the tracker saw.
+function StoryBar() {
+  const beat = useStory((s) => s.beat);
+  const story = useDesk((s) => s.story);
+  if (!story || !beat) return null;
+  return (
+    <>
+      {beat.away && <div className="away" />}
+      <div className={"storybar " + beat.actor}>
+        <b>{beat.actor === "tutor" ? "🤖 Tutor" : "🧑‍🎓 Student"}</b>
+        <span>{beat.text}</span>
+      </div>
+    </>
+  );
+}
+
 function Dock() {
   const wins = useDesk((s) => s.wins);
   const ws = useEnv((s) => s.payload?.workspace);
@@ -80,7 +97,7 @@ function useFollowAgent() {
   const log = useEnv((s) => s.payload?.action_log);
   const last = log && log[log.length - 1];
   useEffect(() => {
-    if (!last || !useDesk.getState().follow) return;
+    if (!last || !useDesk.getState().follow || useDesk.getState().story) return;   // story mode drives windows itself
     useDesk.getState().open(appForAction(last.action));
   }, [last?.step, last?.action]);
 }
@@ -111,6 +128,7 @@ export default function App() {
         const a = APPS.find((x) => x.id === id);
         return <Window key={id} id={id} title={a.title}><View /></Window>;
       })}
+      <StoryBar />
       <Dock />
     </div>
   );

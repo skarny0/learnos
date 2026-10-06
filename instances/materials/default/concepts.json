@@ -1,0 +1,42 @@
+{
+ "pomdp": {
+  "sections": [
+   "Partial observability (POMDP)"
+  ],
+  "keywords": [
+   "belief",
+   "observ",
+   "partial",
+   "pomdp",
+   "distribution",
+   "unobserved"
+  ]
+ },
+ "attention": {
+  "sections": [
+   "Attention as a hidden variable"
+  ],
+  "keywords": [
+   "attention",
+   "focus",
+   "distract",
+   "attend",
+   "gate"
+  ]
+ },
+ "pass_k": {
+  "sections": [
+   "pass@k vs pass^k"
+  ],
+  "keywords": [
+   "pass^k",
+   "pass@k",
+   "all k",
+   "every run",
+   "every seed",
+   "reliab",
+   "seed",
+   "trial"
+  ]
+ }
+}

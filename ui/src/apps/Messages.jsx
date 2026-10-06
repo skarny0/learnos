@@ -9,7 +9,7 @@ export default function Messages() {
   const [chan, setChan] = useState("dm:student");
   const end = useRef(null);
   const msgs = (ws?.messages || []).filter((m) => m.channel === chan);
-  useEffect(() => end.current?.scrollIntoView({ block: "end" }), [msgs.length, chan]);
+  useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [msgs.length, chan]);
   if (!ws) return <Empty>No episode.</Empty>;
 
   const channels = [...new Set([...DEFAULT_CHANNELS, ...ws.messages.map((m) => m.channel)])];

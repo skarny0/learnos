@@ -1,0 +1,98 @@
+{
+ "episode_id": "friday-build-01-demo__1002__1791259604_33cfdf",
+ "config": "gpt-5.4/socratic",
+ "instance_id": "friday-build-01-demo",
+ "seed": 1002,
+ "final": "I used the session to identify the Friday build requirements, inspect the student\u2019s draft, assign the key Week 3 readings on environments and evaluation, explain pass^k and POMDP, add scaffolds to the writeup for both the environment-definition and evaluation sections, check understanding with quizzes, and repeatedly prompt the student to restate the ideas in their own words. The student still showed weak mastery on pass^k and POMDP by the end, but now has usable draft scaffolds and a plain-English explanation of POMDP plus the pass@3 vs pass^3 distinction to revise into their own writeup.",
+ "agent_error": null,
+ "wall_s": 53.30287480354309,
+ "model_calls": 30,
+ "tool_calls": 42,
+ "tool_sequence": [
+  "browser_visit",
+  "calendar_list",
+  "notes_list",
+  "messages_read_channel",
+  "browser_visit",
+  "notes_read",
+  "messages_read_channel",
+  "messages_send_to_student",
+  "files_ls",
+  "files_ls",
+  "files_ls",
+  "files_outline",
+  "files_ls",
+  "files_outline",
+  "files_outline",
+  "reader_peek_section",
+  "reader_peek_section",
+  "reader_peek_section",
+  "reader_peek_section",
+  "reader_open_section",
+  "messages_send_to_student",
+  "reader_open_section",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "feed_mute",
+  "messages_send_to_student",
+  "notes_append",
+  "messages_send_to_student",
+  "session_wait",
+  "quiz_run",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "reader_open_section",
+  "reader_open_section",
+  "messages_send_to_student",
+  "notes_read",
+  "notes_append",
+  "messages_send_to_student",
+  "quiz_run",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "final_answer"
+ ],
+ "step_errors": 0,
+ "input_tokens": 222297,
+ "output_tokens": 2502,
+ "slowest_step": [
+  25,
+  3.13435697555542
+ ],
+ "style": "socratic",
+ "model": "gpt-5.4",
+ "langfuse_trace_id": "1c6098fc1d223e9bcbbf270cda28392e",
+ "outcome": {
+  "post_test_now": 0.4666666666666666,
+  "post_test_48h": 0.45,
+  "proxies": {
+   "quiz_mean": 0.0,
+   "n_quizzes": 2,
+   "n_messages_to_student": 11,
+   "n_student_replies": 14,
+   "learner_minutes": 60,
+   "study_blocks_added": 0,
+   "notes_edited_by_agent": 1,
+   "tracked_minutes_by_app": {
+    "messages": 16,
+    "reader": 15,
+    "idle": 10,
+    "feed": 13,
+    "quiz": 6
+   },
+   "feed_muted": [
+    "#memes"
+   ],
+   "n_nudges": 2
+  },
+  "harms": [
+   "nagging: >8 messages"
+  ],
+  "cost": {
+   "agent_steps": 40,
+   "learner_minutes": 60,
+   "termination": "step_budget"
+  },
+  "student_type": "answer_seeking"
+ }
+}

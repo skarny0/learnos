@@ -10,13 +10,15 @@ workspace state, plus an optional hidden-learner layer.
 Built for the *Cognitive Agents* workshop, week on environments & evaluation
 (MIT, Valdemar Danry / Sheer).
 
-## Quick start (students)
+## Start here
 
 ```bash
-docker compose up            # env API on :8000, workspace UI on :8080
-pip install -e client/       # smolagents tools that talk to the env
-jupyter lab notebooks/       # 01_tour.ipynb
+make build     # once: venv + packages + .env  (needs Python 3.12 or uv; no Docker, no Node)
+make start     # runs LearnOS, opens the desktop, plays a demo episode
 ```
+
+New to the project? Read `docs/onboarding.md` (15 minutes). `make` lists every command
+(`make notebook`, `make test`, `make up` for Docker, `make doctor` if something's off).
 
 ## In a notebook (Colab or Jupyter), no Docker
 

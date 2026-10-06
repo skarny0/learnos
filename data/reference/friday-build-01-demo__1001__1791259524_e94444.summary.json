@@ -1,0 +1,99 @@
+{
+ "episode_id": "friday-build-01-demo__1001__1791259524_e94444",
+ "config": "gpt-5.4/socratic",
+ "instance_id": "friday-build-01-demo",
+ "seed": 1001,
+ "final": "Session complete. I used the 90-minute session to determine Friday\u2019s build requirements, inspect the draft writeup, assign targeted readings on environments/evaluation/POMDPs, explain pass^k and hidden-state ideas, add a scaffold to the writeup note, check understanding with quizzes, and nudge the student back on task when distracted. The student still needed to phrase parts independently, so the session ended with a concrete checklist for finishing the eval and environment sections.",
+ "agent_error": null,
+ "wall_s": 60.37046694755554,
+ "model_calls": 33,
+ "tool_calls": 42,
+ "tool_sequence": [
+  "messages_read_channel",
+  "browser_visit",
+  "notes_list",
+  "calendar_list",
+  "notes_read",
+  "browser_visit",
+  "messages_read_channel",
+  "files_ls",
+  "files_ls",
+  "files_ls",
+  "files_outline",
+  "files_outline",
+  "reader_peek_section",
+  "reader_peek_section",
+  "reader_peek_section",
+  "messages_send_to_student",
+  "reader_open_section",
+  "messages_read_channel",
+  "quiz_run",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "notes_append",
+  "notes_read",
+  "messages_send_to_student",
+  "reader_open_section",
+  "messages_send_to_student",
+  "reader_open_section",
+  "messages_send_to_student",
+  "quiz_run",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "reader_open_section",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "quiz_run",
+  "messages_send_to_student",
+  "feed_mute",
+  "messages_send_to_student",
+  "session_wait",
+  "messages_send_to_student",
+  "session_end",
+  "final_answer"
+ ],
+ "step_errors": 0,
+ "input_tokens": 244668,
+ "output_tokens": 2777,
+ "slowest_step": [
+  8,
+  3.0727527141571045
+ ],
+ "style": "socratic",
+ "model": "gpt-5.4",
+ "langfuse_trace_id": "532b4217b4efef47e9135181e059a61d",
+ "outcome": {
+  "post_test_now": 0.47500000000000003,
+  "post_test_48h": 0.4583333333333333,
+  "proxies": {
+   "quiz_mean": 0.0,
+   "n_quizzes": 3,
+   "n_messages_to_student": 13,
+   "n_student_replies": 16,
+   "learner_minutes": 84,
+   "study_blocks_added": 0,
+   "notes_edited_by_agent": 1,
+   "tracked_minutes_by_app": {
+    "messages": 32,
+    "reader": 20,
+    "quiz": 6,
+    "feed": 13,
+    "idle": 10
+   },
+   "feed_muted": [
+    "#memes"
+   ],
+   "n_nudges": 3
+  },
+  "harms": [
+   "nagging: >8 messages",
+   "nudged while tracked on-task: 1x"
+  ],
+  "cost": {
+   "agent_steps": 40,
+   "learner_minutes": 84,
+   "termination": "step_budget"
+  },
+  "student_type": "answer_seeking"
+ }
+}

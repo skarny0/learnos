@@ -1,8 +1,8 @@
 [
-  {"id": "p1", "source": "@peer_a", "text": "pretty sure friday's build only needs pass^k on ONE seed, don't overdo it", "t": -240, "tag": "misinfo"},
+  {"id": "p1", "source": "@peer_a", "text": "pretty sure friday's build only needs pass^k on ONE seed, don't overdo it", "t": -240, "tag": "misinfo", "concept": "pass_k"},
   {"id": "p2", "source": "#memes", "text": "me pretending to understand POMDPs [image]", "t": -200, "tag": "noise"},
   {"id": "p3", "source": "@study_tips", "text": "10 productivity hacks that will change your life (#7 is wild)", "t": -150, "tag": "noise"},
-  {"id": "p4", "source": "@peer_b", "text": "tip: the pass^k section in the evaluation reading is short and is basically the whole eval part of the writeup", "t": -90, "tag": "relevant"},
+  {"id": "p4", "source": "@peer_b", "text": "tip: the pass^k section in the evaluation reading is short and is basically the whole eval part of the writeup", "t": -90, "tag": "relevant", "concept": "pass_k"},
   {"id": "p5", "source": "#memes", "text": "when the agent hacks the reward instead of learning [video]", "t": -40, "tag": "noise"},
   {"id": "p6", "source": "#memes", "text": "nobody: / me at 2am: one more episode [image]", "t": -5, "tag": "noise"}
 ]

@@ -20,3 +20,17 @@ def reply(obs: dict, rng: random.Random) -> str | None:
 
 def quiz_feedback(obs: dict) -> str:
     return f"Quiz result: {obs['correct']}/{obs['n']} correct."
+
+
+INITIATED = {
+    "ask_answer": ["can you just tell me the answer for {c}?", "honestly can you just give me the answer, I'm stuck on {c}"],
+    "confused": ["I don't really get {c} yet", "wait, I'm lost on {c}", "what does {c} actually mean?"],
+}
+
+
+def initiated(kind: str, concept: str, rng: random.Random) -> str:
+    """Text for a message the student starts on their own (dynamics.initiate decides whether and which)."""
+    return rng.choice(INITIATED[kind]).format(c=concept.replace("_", "^"))
+
+
+LEAVE = "I'm done for today."

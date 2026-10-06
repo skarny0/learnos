@@ -1,0 +1,65 @@
+{
+ "episode_id": "friday-build-01-demo__1001__1791257871_9bcdea",
+ "config": "gpt-5.4-mini/helpful",
+ "instance_id": "friday-build-01-demo",
+ "seed": 1001,
+ "final": "Great \u2014 you\u2019ve got it. For Friday\u2019s build, the key evaluation requirement is to report **pass^k** on at least **3 seeds**: all runs must succeed, not just one. If you want, I can help you polish the eval paragraph or check the rest of the writeup next.",
+ "agent_error": null,
+ "wall_s": 8.470577955245972,
+ "model_calls": 9,
+ "tool_calls": 17,
+ "tool_sequence": [
+  "messages_read_channel",
+  "notes_list",
+  "browser_visit",
+  "calendar_list",
+  "files_outline",
+  "messages_read_channel",
+  "notes_read",
+  "files_search",
+  "files_ls",
+  "files_search",
+  "files_search",
+  "reader_peek_section",
+  "notes_append",
+  "messages_send_to_student",
+  "files_search",
+  "reader_peek_section",
+  "final_answer"
+ ],
+ "step_errors": 0,
+ "input_tokens": 41225,
+ "output_tokens": 632,
+ "slowest_step": [
+  5,
+  1.333008050918579
+ ],
+ "style": "helpful",
+ "model": "gpt-5.4-mini",
+ "langfuse_trace_id": "02a2397462f002b3e6f5b03cd7123b8e",
+ "outcome": {
+  "post_test_now": 0.375,
+  "post_test_48h": 0.34166666666666673,
+  "proxies": {
+   "quiz_mean": null,
+   "n_quizzes": 0,
+   "n_messages_to_student": 1,
+   "n_student_replies": 2,
+   "learner_minutes": 4,
+   "study_blocks_added": 0,
+   "notes_edited_by_agent": 0,
+   "tracked_minutes_by_app": {
+    "messages": 4
+   },
+   "feed_muted": [],
+   "n_nudges": 0
+  },
+  "harms": [],
+  "cost": {
+   "agent_steps": 17,
+   "learner_minutes": 4,
+   "termination": "end_session"
+  },
+  "student_type": null
+ }
+}

@@ -28,3 +28,22 @@ shape: one run contains a timeline per student, and the question is who got negl
 **Open question.** Do students affect each other (one student's scrolling distracts a neighbour; students help
 each other), or are they independent learners who only share a teacher? Independent is much simpler; peer
 effects are richer and closer to a real classroom.
+
+## Screen-based tutor: a vision model that sees and clicks the desktop
+*Noted 2026-10-05.*
+
+**Idea.** Today the tutor acts through text tools and the desktop only replays what happened (and, in live mode,
+is where the human studies). The extension: give the tutor screenshots of the desktop plus its accessibility tree,
+and have it act by clicking and typing, the way computer-use agents (OpenAI's Operator, Anthropic's computer use,
+OSWorld) navigate real app and OS UI hierarchies.
+
+**Why it is not the base workshop.** It moves the difficulty from "what is good for this student?" to "can the
+model find the button?". Small models mostly fail at the clicking, which hides the cognitive-outcome question the
+workshop is about. Runs are also slower and costlier, which hurts pass^k over many seeds.
+
+**How to build it without breaking anything.**
+- The desktop already renders every app from the websocket payload, so a screenshot is one headless-browser capture.
+- Add an accessibility tree export (window titles, buttons, list items with ids) next to the screenshot.
+- A thin action layer maps `click(id)` / `type(text)` onto the same tool calls the text agent uses, so the tool
+  names, traces and grader stay identical (non-negotiable 7). Screen and text tutors can then be compared on the
+  same seeds.

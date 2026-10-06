@@ -1,13 +1,10 @@
 # Notebooks (student-facing)
 
-01_tour.ipynb          Connect to the container, list tools, take 5 manual steps, watch the UI.
-02_reward_spec.ipynb   Write reward(g)/success(g) BEFORE running any agent. Reward spec sheet template.
-03_agent.ipynb         smolagents agent on 2 instances x k seeds. Langfuse tracing. pass@k, pass^k.
-04_reveal.ipynb        Level 0/1 ground truth vs your reward. Rank correlation of proxies vs true gain.
-05_validate_sim.ipynb  Run learnos_env.sim.validate. Discuss what passed, what failed, why you'd trust it.
-06_live.ipynb          Switch container to LEARNOS_MODE=live; 2-day ABAB protocol; pre-register reward.
-
-part5_observability.ipynb  BUILT. Workshop Part 5: Langfuse + env traces linked by episode_id; 5-run trace
-                           inspection with an 'observation' failure category; config comparison table.
-
-Build the rest from docs/workshop-flow.md once the env is stable.
+learnos_workshop.ipynb   The workshop, in one notebook. Runs locally (`make notebook`) and in Colab; with no API
+                         key every cell falls back to recorded runs in data/reference/.
+  Setup                  keys, start LearnOS in the kernel, Langfuse tracing, the desktop
+  Part A                 the environment (properties, the simulated student, the task, known limits, under the
+                         hood: drive it by hand, the grader, how a tool is made), replay of a real AI tutor,
+                         how we'd know it worked, Langfuse + student record, scaling up across seeds
+  Part B (20 pts)        design a tutor and watch it, diagnose from the evidence, change one thing across
+                         5 mixed students, change the student (a rule plugin), optional: success(), add a tool

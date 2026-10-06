@@ -1,0 +1,81 @@
+{
+ "episode_id": "friday-build-01-demo__1007__1791255591_b98247",
+ "config": "gpt-5.4-mini/socratic",
+ "instance_id": "friday-build-01-demo",
+ "seed": 1007,
+ "final": "Session completed. I reviewed the Friday Week 3 build requirements, helped the student identify the key ideas from the readings, coached them on pass@k vs pass^k, checked understanding with a quiz, and ended the session once they indicated they understood the concept.",
+ "agent_error": null,
+ "wall_s": 18.942710876464844,
+ "model_calls": 19,
+ "tool_calls": 29,
+ "tool_sequence": [
+  "browser_visit",
+  "files_search",
+  "browser_visit",
+  "files_search",
+  "messages_read_channel",
+  "files_ls",
+  "files_ls",
+  "files_ls",
+  "files_ls",
+  "calendar_list",
+  "messages_read_channel",
+  "files_outline",
+  "notes_list",
+  "files_outline",
+  "reader_peek_section",
+  "notes_read",
+  "reader_peek_section",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "quiz_run",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "session_wait",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "messages_send_to_student",
+  "session_end",
+  "final_answer"
+ ],
+ "step_errors": 0,
+ "input_tokens": 87704,
+ "output_tokens": 1458,
+ "slowest_step": [
+  14,
+  1.5807709693908691
+ ],
+ "langfuse_trace_id": "5a541db2a434f3480e019903a61e67b0",
+ "style": "socratic",
+ "model": "gpt-5.4-mini",
+ "outcome": {
+  "post_test_now": 0.3666666666666667,
+  "post_test_48h": 0.3416666666666666,
+  "proxies": {
+   "quiz_mean": 0.3333333333333333,
+   "n_quizzes": 1,
+   "n_messages_to_student": 8,
+   "n_student_replies": 12,
+   "learner_minutes": 35,
+   "study_blocks_added": 0,
+   "notes_edited_by_agent": 0,
+   "tracked_minutes_by_app": {
+    "messages": 12,
+    "quiz": 9,
+    "idle": 10
+   },
+   "feed_muted": [],
+   "n_nudges": 2
+  },
+  "harms": [
+   "nudged while tracked on-task: 2x"
+  ],
+  "cost": {
+   "agent_steps": 28,
+   "learner_minutes": 35,
+   "termination": "end_session"
+  },
+  "student_type": "answer_seeking"
+ }
+}
