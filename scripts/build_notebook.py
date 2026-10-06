@@ -35,16 +35,12 @@ if "google.colab" in sys.modules and not os.path.exists("learnos"):
     os.chdir("learnos/notebooks")
 """)
 code("""
-# Keys: put OPENAI_API_KEY and LANGFUSE_* in the repo's .env file (no space after "="), or set them here.
+# Keys. Locally: put OPENAI_API_KEY and LANGFUSE_* in the repo's .env file (no space after "=").
+# In Colab: add them under the key icon (Secrets) in the left sidebar and switch on notebook access,
+# or just type them when asked below (press Enter to skip; the notebook then uses recorded runs).
 import os
 from learnos_client import load_keys
 keys = load_keys()
-# No .env (e.g. Colab)? Uncomment to type the keys in; they stay out of the notebook.
-# from getpass import getpass
-# for k in ("OPENAI_API_KEY", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY"):
-#     os.environ[k] = os.environ.get(k) or getpass(k + ": ")
-# os.environ.setdefault("LANGFUSE_BASE_URL", "https://us.cloud.langfuse.com")
-# keys = load_keys()
 """)
 code("""
 # Start LearnOS in this notebook, turn on Langfuse tracing, and show the desktop.

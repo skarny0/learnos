@@ -22,6 +22,13 @@ New to the project? Read `docs/onboarding.md` (15 minutes). `make` lists every c
 
 ## In a notebook (Colab or Jupyter), no Docker
 
+The workshop is one notebook: `notebooks/learnos_workshop.ipynb`
+([open in Colab](https://colab.research.google.com/github/skarny0/learnos/blob/master/notebooks/learnos_workshop.ipynb)).
+Its first cell clones this repo in Colab. Keys: in Colab, add `OPENAI_API_KEY` (and optionally
+`LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL`) under the key icon (Secrets), or type them
+when the notebook asks. Locally, put them in `.env`. No key: every cell uses recorded runs.
+
+
 ```python
 %pip install -q -e learnos/env -e learnos/client     # after cloning the repo
 from learnos_client import start, show, make_tools

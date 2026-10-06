@@ -11,6 +11,7 @@ Everything here only drives the public API (tools over HTTP) and reads the grade
 """
 from __future__ import annotations
 import os
+import sys
 import time
 from pathlib import Path
 
@@ -29,8 +30,12 @@ STYLES = {
 }
 
 
-def load_keys(path: str | Path | None = None) -> dict:
-    """Load OPENAI_API_KEY and LANGFUSE_* from a .env file (if there is one) and report what is set."""
+KEYS = ("OPENAI_API_KEY", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY")
+
+
+def load_keys(path: str | Path | None = None, ask: bool | None = None) -> dict:
+    """Find OPENAI_API_KEY and LANGFUSE_* and report what is set. Looks in a .env file, then (in Colab) the
+    Secrets panel, then asks in a password box for anything still missing (Colab only by default; Enter skips)."""
     for p in [Path(path)] if path else [Path.cwd() / ".env", Path.cwd().parent / ".env", ROOT / ".env"]:
         if p.exists():
             for line in p.read_text().splitlines():
@@ -39,7 +44,32 @@ def load_keys(path: str | Path | None = None) -> dict:
                     if v.strip():
                         os.environ.setdefault(k.strip(), v.strip().strip('"'))
             break
-    status = {k: bool(os.environ.get(k)) for k in ("OPENAI_API_KEY", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY")}
+    colab = "google.colab" in sys.modules
+    if colab:
+        try:
+            from google.colab import userdata
+            for k in (*KEYS, "LANGFUSE_BASE_URL"):
+                if not os.environ.get(k):
+                    try:
+                        v = userdata.get(k)
+                    except Exception:            # not added, or access not granted
+                        v = None
+                    if v:
+                        os.environ[k] = v
+        except ImportError:
+            pass
+    if ask if ask is not None else colab:
+        from getpass import getpass
+        for k in KEYS:
+            if not os.environ.get(k):
+                v = getpass(f"{k} (press Enter to skip): ").strip()
+                if v:
+                    os.environ[k] = v
+        if os.environ.get("LANGFUSE_PUBLIC_KEY") and not os.environ.get("LANGFUSE_BASE_URL"):
+            v = input("LANGFUSE_BASE_URL (Enter for https://cloud.langfuse.com; US projects: https://us.cloud.langfuse.com): ").strip()
+            if v:
+                os.environ["LANGFUSE_BASE_URL"] = v
+    status = {k: bool(os.environ.get(k)) for k in KEYS}
     for k, ok in status.items():
         print(f"{'✓' if ok else '✗'} {k}" + ("" if ok else "  (missing: runs that need it will use recorded runs instead)"))
     return status
