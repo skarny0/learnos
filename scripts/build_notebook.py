@@ -134,39 +134,58 @@ md("""
 
 ### 1.3 What the tutor can't see: the student
 Behind the screen is a simulated student who **learns**, **forgets**, **gets distracted**, **asks for help**, and **quits** if nagged. The tutor never sees their mind. The **grader** does: it holds a token the tutor never gets.
+
+The student is built in two layers. The seed draws a **personality**, a few fixed traits. Those traits set up the student's **inner state**, the numbers that move during the session.
+
+**Layer 1: the seed draws a personality (fixed for the whole run).** A student has a type, and each type is a range for every trait. The seed picks the trait values inside those ranges. Nothing here changes once the session starts, and the tutor is never told any of it.
+
+| Type | Learns how fast | Drifts how easily | Already knows | Persistence | Also sets |
+|---|---|---|---|---|---|
+| Focused | 0.30 to 0.40 | 0.08 to 0.18 | 0.20 to 0.35 | 0.75 to 0.90 | motivation 0.65 to 0.85 |
+| Distractible | 0.25 to 0.35 | 0.50 to 0.70 | 0.15 to 0.30 | draw | attention 0.45 to 0.65 |
+| Answer-seeking | 0.25 to 0.35 | 0.25 to 0.40 | 0.15 to 0.30 | 0.30 to 0.50 | reliance 0.30 to 0.50 |
+| Strong but bored | 0.30 to 0.40 | 0.30 to 0.45 | 0.55 to 0.75 | draw | motivation 0.40 to 0.55 |
+| Slow and steady | 0.15 to 0.22 | 0.10 to 0.20 | 0.10 to 0.25 | 0.80 to 0.95 | |
+
+"Draw" means the seed draws it from a default spread (persistence centered near 0.75, attention near 0.7, motivation near 0.65). Three more traits are the same for every student for now: slip 0.10 (knowing it but missing a quiz item), guess 0.20, and fatigue 0.02 per minute of reading. On the demo task the type is fixed to answer-seeking, so each seed is a different answer-seeking student. On the mixed task the seed picks the type as well.
+
+Same seed, five types; then the same type, three seeds:
 """)
 code("""
-env.reset(task)
 g = env.grader
+def personality(seed, kind):
+    env.reset({**task, "seed": seed, "learner_profile": {"type": kind}})
+    ts = g("true_state"); P = ts["persona"]
+    return {"type": kind, "seed": seed, "learns how fast": P["learn_rate"], "drifts how easily": P["distraction_rate"],
+            "already knows": ts["p_know"]["pass_k"], "persistence": ts["persistence"],
+            "starts: attention": ts["attention"], "starts: motivation": ts["motivation"], "starts: reliance": ts["reliance"]}
+rows = [personality(1000, k) for k in ("focused", "distractible", "answer_seeking", "strong_but_bored", "slow_and_steady")]
+rows += [personality(s, "answer_seeking") for s in (1001, 1002)]
+pd.DataFrame(rows).set_index(["type", "seed"]).round(2)
+""")
+md("""
+**Layer 2: the traits set up the inner state (changes every step).** These are the numbers the rules in 1.4 move. Each one starts from the personality above, then the tutor's actions and the passing minutes push it around.
+
+| Inner state | What it means | Starts from |
+|---|---|---|
+| **Knows it** (per idea) | What they really know, 0 to 1. This is what the test 2 days later measures. | "already knows" |
+| **Borrowed** (per idea) | What they can do *right now* thanks to recent help. It shows up in quizzes, halves after each quiz, and is gone by the next session. | 0 |
+| **Memory strength** (per idea) | How slowly they forget: a half-life of about 8 days, stretched by practice. | 8 days, same for everyone |
+| **Attention** | Focus right now. Reading and quizzes tire it; breaks restore it. | type range, or a draw |
+| **Motivation** | Willingness to keep going. Below 0.2 they leave the session. | type range, or a draw |
+| **Reliance on help** | How much they lean on the tutor. It costs them on the test, where no help is allowed. | type range, or 0 |
+| **Persistence** | How hard they try before asking for the answer. Nearly fixed: each given answer wears it a little. | the trait |
+| **Message pressure** | Recent messages. Past about 3, each new message annoys them. | 0 |
+
+The traits that don't appear here (learn rate, drift rate, slip, guess, fatigue) never change. They are the coefficients the rules multiply by.
+""")
+code("""
+env.reset(task)                       # back to the demo student: seed 1000, answer-seeking
 ts = g("true_state")
-print("hidden student:", {k: round(ts[k], 2) for k in ("attention", "motivation", "reliance", "persistence")}, "| type:", ts["persona"].get("type"))
+print("inner state at the start:", {k: round(ts[k], 2) for k in ("attention", "motivation", "reliance", "persistence")}, "| type:", ts["persona"].get("type"))
 print("knows each idea:", {c: round(v, 2) for c, v in ts["p_know"].items()})
 """)
 md("""
-**What's inside the student.** A handful of numbers, changed only by the student rules:
-
-| Hidden number | What it means |
-|---|---|
-| **Knows it** (per idea) | What they really know, 0 to 1. This is what the test 2 days later measures. |
-| **Borrowed** (per idea) | What they can do *right now* thanks to recent help. It shows up in quizzes, halves after each quiz, and is gone by the next session. |
-| **Memory strength** (per idea) | How slowly they forget: a half-life of about 8 days, stretched by practice. |
-| **Attention** | Focus right now. Reading and quizzes tire it; breaks restore it. |
-| **Motivation** | Willingness to keep going. Below 0.2 they leave the session. |
-| **Reliance on help** | How much they lean on the tutor. It costs them on the test, where no help is allowed. |
-| **Persistence** | How hard they try before asking for the answer. |
-| **Message pressure** | Recent messages. Past about 3, each new message annoys them. |
-| **Traits** (fixed) | How fast they learn, how easily they drift, how often they slip or guess. |
-
-**Every seed is a different student.** The seed picks a type, then draws that student's traits from the type's ranges. The tutor isn't told which.
-
-| Type | What's different |
-|---|---|
-| Focused | learns faster, rarely drifts, persistent, motivated |
-| Distractible | drifts often, starts less focused |
-| Answer-seeking | already leans on help, gives up quickly |
-| Strong but bored | already knows a lot, low motivation |
-| Slow and steady | learns slowly, rarely drifts, very persistent |
-
 ### 1.4 How the student changes: the rules
 The rules are plain arithmetic with a little chance, seeded, so every run can be repeated. Three ideas sit behind all of them:
 1. **Learning needs the student's own effort and attention.** Everything that teaches is scaled by attention, motivation, and how much of the time they were actually on task.
@@ -285,7 +304,7 @@ Things to look for (this is seed 1000; other seeds differ in the details):
 - **Nudging** a student who was working lowers their motivation. **Message pressure** builds with every message; past about 3, any message would.
 - **Waiting** eases the pressure and restores attention, but left alone the student scrolled the feed and read the wrong post about pass^k ("only ONE seed"), and **knows it** dropped. Forgetting itself is slow: about 8 days to lose half.
 
-**Why the seed matters: the same action lands differently on different students.** The rules are the same for everyone; the traits they run on are not. The seed picks a type and draws that student's traits, so every number the rules multiply by (how fast they learn, how easily they drift, how much they already lean on help) differs from student to student:
+**Why the seed matters: the same action lands differently on different students.** The rules are the same for everyone; the personality they run on (1.3) is not. Every number the rules multiply by differs from student to student:
 
 | Type | What changes for the tutor |
 |---|---|
