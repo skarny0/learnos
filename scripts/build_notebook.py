@@ -142,7 +142,7 @@ Two layers: the seed draws a **personality** (fixed traits), and those traits se
 
 "Draw": from a default spread (persistence near 0.75, attention near 0.7, motivation near 0.65). Same for everyone: slip 0.10, guess 0.20, fatigue 0.02 per minute read. The demo task fixes the type to answer-seeking; the mixed task lets the seed pick it.
 
-Same seed, five types; then one type, three seeds:
+The table below shows the two things a seed does. The first five rows keep the seed (1000) and change the type: the type decides which ranges the traits come from. The last two rows keep the type (answer-seeking) and change the seed (1001, 1002): the seed decides where inside those ranges each student lands.
 """)
 code("""
 g = env.grader
