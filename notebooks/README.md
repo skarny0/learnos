@@ -8,3 +8,5 @@ learnos_workshop.ipynb   The workshop, in one notebook. Runs locally (`make note
                          how we'd know it worked, Langfuse + student record, scaling up across seeds
   Part B (20 pts)        design a tutor and watch it, diagnose from the evidence, change one thing across
                          5 mixed students, change the student (a rule plugin), optional: success(), add a tool
+
+notes-time.md            Companion note (not workshop material): how simulated time works, and one known quirk in forgetting.
