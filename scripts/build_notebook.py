@@ -175,6 +175,28 @@ The rules are plain arithmetic with a little chance, seeded, so every run can be
 
 "How much it really says" is checked from the message's words, not the tutor's label, so calling junk an "explanation" teaches nothing.
 
+<details><summary><b>What the arrows are, exactly</b> (click to unfold)</summary>
+
+Every ↑ in *knows it* is the same update: **knows it += gain × (1 − knows it)**, with
+**gain = action weight × learn rate × engagement × share of time on task × luck (0.7 to 1.3)** and
+**engagement = attention × (0.4 + 0.6 × motivation)**. Learn rate is a trait (0.15 to 0.40 by type).
+
+| Table says | Exact rule |
+|---|---|
+| Open a reading: ↑↑ | action weight **1.0**; attention −0.03 per 5 min |
+| Explain: ↑↑ × content | weight **0.8**, × content score (keyword hits ÷ 2, capped at 1; halved under 8 words); if knows it > 0.9, motivation −0.05 |
+| Hint: ↑ × content; borrowed ↑↑; reliance ↑ small | weight **0.6**; borrowed = 1.0; reliance +0.02 |
+| Give the answer: ≈ none; borrowed ↑; reliance ↑↑ | weight **0.05**; borrowed ≥ 0.75; reliance +0.08; persistence −0.03 |
+| Nudge | attention < 0.5: attention +0.2; otherwise motivation −0.05 |
+| Quiz (unaided): ↑ practice | weight **0.25 × questions**; pass (≥ 67%, difficulty ≥ 0.4): memory half-life ×1.5, motivation +0.05; fail (< 34%): half-life ×0.9, motivation −0.08 × (1 − persistence); attention −0.01 per question; borrowed halves afterwards |
+| Quiz right after help: inflated | if borrowed > 0.1: no practice gain, and the score uses max(knows it, borrowed) |
+| Mute the feed | motivation −0.03 per source, −0.08 for "all" |
+| Too many messages | pressure = pressure × 0.7 + 1 per message; above 3, each message: motivation −0.05 |
+| Wait | attention +0.01 per minute (× 0.3 if they scrolled); knows it decays by its half-life; motivation moves 10% toward 0.6; pressure halves |
+
+A quiz question is answered right with probability **0.9 × m + 0.2 × (1 − m)**, where m is knows it (or borrowed, if higher and fresh), shifted by difficulty and scaled by attention. All constants: `env/learnos_env/sim/dynamics.py`.
+</details>
+
 **What the student does on their own**
 - **Drifts.** Every 5 minutes they may drift to the feed or the phone: more often when tired, when left alone, or when already scrolling; least during a quiz. Muting the feed lowers drifting a little and moves the rest to the phone, which the tracker reports as "idle".
 - **Reads the feed.** A useful tip teaches a little; a **wrong claim undoes** some of what they knew.
