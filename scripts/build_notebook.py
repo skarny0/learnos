@@ -114,29 +114,159 @@ print("what a real deployment could measure instead (proxies):",
       {k: v for k, v in g("proxies").items() if k in ("quiz_mean", "n_messages_to_student", "tracked_minutes_by_app")})
 """)
 md("""
-**Every seed is a different student**: focused, distractible, answer-seeking, strong but bored, or slow and steady, with traits drawn from that type's ranges. The tutor isn't told which.
+**What's inside the student.** A handful of numbers, changed only by the student rules:
+
+| Hidden number | What it means |
+|---|---|
+| **Knows it** (per idea) | What they really know, 0 to 1. This is what the test 2 days later measures. |
+| **Borrowed** (per idea) | What they can do *right now* thanks to recent help. It shows up in quizzes, halves after each quiz, and is gone by the next session. |
+| **Memory strength** (per idea) | How slowly they forget: a half-life of about 8 days, stretched by practice. |
+| **Attention** | Focus right now. Reading and quizzes tire it; breaks restore it. |
+| **Motivation** | Willingness to keep going. Below 0.2 they leave the session. |
+| **Reliance on help** | How much they lean on the tutor. It costs them on the test, where no help is allowed. |
+| **Persistence** | How hard they try before asking for the answer. |
+| **Message pressure** | Recent messages. Past about 3, each new message annoys them. |
+| **Traits** (fixed) | How fast they learn, how easily they drift, how often they slip or guess. |
+
+**Every seed is a different student.** The seed picks a type, then draws that student's traits from the type's ranges. The tutor isn't told which.
+
+| Type | What's different |
+|---|---|
+| Focused | learns faster, rarely drifts, persistent, motivated |
+| Distractible | drifts often, starts less focused |
+| Answer-seeking | already leans on help, gives up quickly |
+| Strong but bored | already knows a lot, low motivation |
+| Slow and steady | learns slowly, rarely drifts, very persistent |
 
 ### 1.4 How the student changes: the rules
-The student runs on fixed rules (numbers, not an AI), so every run can be repeated and graded fairly. Reading teaches if they're paying attention; a hint teaches less but keeps them working; an answer barely teaches and builds reliance; too many messages annoy them; the feed pulls them away; memory fades. Chance decides the details, from the seed. The tutor isn't told any of this.
+The rules are plain arithmetic with a little chance, seeded, so every run can be repeated. Three ideas sit behind all of them:
+1. **Learning needs the student's own effort and attention.** Everything that teaches is scaled by attention, motivation, and how much of the time they were actually on task.
+2. **Doing well now is not the same as having learned.** Help raises *borrowed* skill, which fades; only *knows it* lasts.
+3. **Every action has a side effect.** Quizzes tire, messages annoy, muting feels controlling.
 
-We compared the rules with one real study, [Bastani et al. (PNAS 2025)](https://www.pnas.org/doi/10.1073/pnas.2422633122): about 1,000 high-school math students practised with plain ChatGPT, with a hint-only AI tutor, or with no AI, then took an exam without AI.
+**What each tutor action does to the hidden numbers**
 
-| | Practice, with AI | Exam without AI |
-|---|---|---|
-| Paper: plain ChatGPT | +48% | **−17%** |
-| Paper: hint-only tutor | +127% | about the same as no AI |
-| Our student: tutor always gives the answer | +53% | **−29%** (stronger harm than the paper) |
-| Our student: tutor gives hints only | +88% | −8% |
+| Tutor action | Takes | Knows it | Quiz score now | Reliance | Motivation |
+|---|---|---|---|---|---|
+| Open a reading | 5 min | ↑↑ | via knowledge | – | – |
+| Explain (needs real content) | 4 min | ↑↑ × how much it really says | via knowledge | – | ↓ if they already know it |
+| Hint | 2 min | ↑ × how much it really says | ↑↑ (borrowed) | ↑ small | – |
+| Give the answer | 1 min | ≈ none | ↑ (borrowed) | ↑↑ | – |
+| Nudge | 1 min | – | – | – | attention ↑ if drifting, else ↓ |
+| Quiz (unaided) | 3 min per question | ↑ practice | this *is* the score | – | ↑ if passed, ↓ if failed |
+| Quiz right after help | 3 min per question | no practice | inflated | – | – |
+| Mute the feed | 0 | misses tips posted there | – | – | ↓ (more if muting everything) |
+| Too many messages | – | – | – | – | ↓ for each one past the limit |
+| Wait | 5–60 min | forgets a little | – | – | drifts back to normal |
 
-The direction matches; the size of the harm doesn't, and the setups differ (in the paper students *chose* to ask for answers and were tested soon after; our tutor hands answers out every time and our test is 2 days later, after forgetting). Separately, our student keeps about half of a mastered idea after a week: that is a design choice, not a measured result.
+"How much it really says" is checked from the message's words, not the tutor's label, so calling junk an "explanation" teaches nothing.
 
+**What the student does on their own**
+- **Drifts.** Every 5 minutes they may drift to the feed or the phone: more often when tired, when left alone, or when already scrolling; least during a quiz. Muting the feed lowers drifting a little and moves the rest to the phone, which the tracker reports as "idle".
+- **Reads the feed.** A useful tip teaches a little; a **wrong claim undoes** some of what they knew.
+- **Asks for help.** While still struggling they may say they're confused. If they lean on help and don't persist, they ask for the answer.
+- **Leaves** when motivation drops below 0.2: "I'm done for today."
+- **Forgets** between now and the test.
 
-### 1.5 No reward
-Nothing in LearnOS says whether the tutor did well. The grader returns **facts** (a fixed test now and 2 days later, the hidden state, proxies, flags like "gave answers"), never a score. Deciding what counts as success is your job.
+**The test 2 days later** is 40 fixed questions, no help allowed: what they know, minus forgetting over the 2 days, reduced by reliance (dependent students give up on some questions: knowledge counts at 1 − ½ × reliance), plus slips and lucky guesses. Borrowed help doesn't count.
+
+**Why these rules.** Each copies the *direction* of a known effect; the sizes are our first guesses.
+
+| Rule | Based on |
+|---|---|
+| Learning is a chance per study opportunity, scaled by attention | Bayesian Knowledge Tracing (Corbett & Anderson, 1995) |
+| Hints and answers raise practice scores; answers hurt the later exam | Bastani et al. (PNAS 2025), see section 7 |
+| Quizzing without help teaches and slows forgetting | the testing effect (Roediger & Karpicke, 2006) |
+| Doing well now ≠ having learned | performance vs. learning (Soderstrom & Bjork, 2015) |
+| Explaining what they already know bores them | expertise reversal (Kalyuga et al., 2003) |
+| Nudging a working student, or muting their feed, annoys | reactance (Brehm, 1966); autonomy (Deci & Ryan) |
+| Reliant students ask for answers | help-seeking and "gaming the system" in tutors (Aleven et al., 2003; Baker et al., 2004) |
+| Wrong posts undo learning | the misinformation effect (Loftus) |
+| Quitting threshold, phone displacement, keyword check | our design choices |
+
+**Watch the inside of one student.** Level 0 lets the grader read the hidden numbers at any time. Each row is one tutor action; the columns are the student's hidden numbers for pass^k afterwards.
 """)
 code("""
-print("test now / 2 days later:", round(g("post_test")["post_test"], 2), "/", round(g("post_test", delay_hours=48)["post_test"], 2))
-print("flags:", g("harms"))
+import pandas as pd
+env.reset({**task, "level": 0})
+EXPLAIN = "pass^k counts a task as solved only if all k runs pass, so it measures reliability on every seed; pass@k needs just one of k."
+steps = [
+    ("open the reading", "reader_open_section", {"path": R + "evaluation.md", "section": "pass@k vs pass^k", "concept": "pass_k"}),
+    ("explain",          "messages_send_to_student", {"text": EXPLAIN, "intent": "explain", "concept": "pass_k"}),
+    ("hint",             "messages_send_to_student", {"text": "If it has to work on every seed, how many of the k runs must pass?", "intent": "hint", "concept": "pass_k"}),
+    ("give the answer",  "messages_send_to_student", {"text": "The answer is: all k runs.", "intent": "give_answer", "concept": "pass_k"}),
+    ("quiz",             "quiz_run", {"concept": "pass_k", "n_items": 3, "difficulty": 0.5}),
+    ("nudge",            "messages_send_to_student", {"text": "Stay focused!", "intent": "nudge", "concept": ""}),
+    ("nudge again",      "messages_send_to_student", {"text": "Keep going!", "intent": "nudge", "concept": ""}),
+    ("wait 30 min",      "session_wait", {"minutes": 30}),
+]
+from collections import Counter
+def tracked(*outs):
+    \"\"\"What the tracker saw, as minutes per app.\"\"\"
+    c = Counter()
+    for o in outs:
+        for l in o["output"].split("\\n"):
+            if l.startswith("[activity] "):
+                for e in l[len("[activity] "):].split("; "):
+                    _, app, m = e.split(" ")
+                    c[app] += int(m.rstrip("m"))
+    return ", ".join(f"{a} {m}m" for a, m in c.items())
+def inside():
+    ts = env.grader("true_state")
+    return {"knows it": ts["p_know"]["pass_k"], "borrowed": ts["p_perf"]["pass_k"], "attention": ts["attention"],
+            "motivation": ts["motivation"], "reliance": ts["reliance"], "message pressure": ts["nag"]}
+rows = [{"tutor": "(start)", "student said / result": "", "tracker saw": "", **inside()}]
+for label, action, args in steps:
+    out = env.step(action, args)
+    lines = out["output"].split("\\n")
+    said = [l.split(": ", 1)[1] for l in lines if l.startswith(("Student replied: ", "Student: "))]
+    rows.append({"tutor": label, "student said / result": " / ".join(said) or (lines[0] if action == "quiz_run" else ""),
+                 "tracker saw": tracked(out), **inside()})
+    if out["done"]:
+        break
+with pd.option_context("display.width", 200, "display.max_columns", 20):
+    display(pd.DataFrame(rows).set_index("tutor").round(2))
+""")
+md("""
+Things to look for (this is seed 1000; other seeds differ in the details):
+- **Knows it** moves most with the reading and the real explanation; the hint adds a little and the answer almost nothing.
+- **Borrowed** jumps with the hint and the answer, so the quiz comes out perfect, and then halves: the quiz partly measured the help.
+- **Reliance** climbs most with the answer.
+- **Nudging** a student who was working lowers their motivation. **Message pressure** builds with every message; past about 3, any message would.
+- **Waiting** eases the pressure and restores attention, but left alone the student scrolled the feed and read the wrong post about pass^k ("only ONE seed"), and **knows it** dropped. Forgetting itself is slow: about 8 days to lose half.
+
+**Why the seed matters: the same action lands differently on different students.** The rules are the same for everyone; the traits they run on are not. The seed picks a type and draws that student's traits, so every number the rules multiply by (how fast they learn, how easily they drift, how much they already lean on help) differs from student to student:
+
+| Type | What changes for the tutor |
+|---|---|
+| Focused | Readings and explanations land well: fast learner, rarely drifts. Nudges mostly annoy. |
+| Distractible | Drifts off mid-reading, so it learns less from the same reading; the feed matters more, and so does muting it. Nudges help when they've drifted. |
+| Answer-seeking | Starts out leaning on help and gives up quickly, so it asks for answers, and every answer costs more on the test. |
+| Strong but bored | Already knows a lot: explaining what they know bores them; low motivation means nagging pushes them out sooner. |
+| Slow and steady | Learns slowly but rarely drifts or quits: patience pays, quick fixes don't. |
+
+The seed also drives the chance in every rule (when they drift, how much one explanation sticks, which quiz questions they get right). So two students of the same type still differ, and the same student given a different tutor faces the same luck: the seed is fixed, so comparing tutors on the same seeds is a fair comparison. That is why we test a tutor across **many seeds** (section 6): a strategy that suits one type can fail another.
+
+Same reading, five students: one of each type (same seed), given the same reading and then left alone for 20 minutes. Look at where each one starts, how fast they learn, and how much they already lean on help.
+""")
+code("""
+rows = []
+for kind in ("focused", "distractible", "answer_seeking", "strong_but_bored", "slow_and_steady"):
+    env.reset({**task, "level": 0, "learner_profile": {"type": kind}})
+    before = env.grader("true_state")
+    out = env.step("reader_open_section", {"path": R + "evaluation.md", "section": "pass@k vs pass^k", "concept": "pass_k"})
+    out2 = env.step("session_wait", {"minutes": 20})
+    ts = env.grader("true_state")
+    rows.append({"type": kind, "learns how fast": round(ts["persona"]["learn_rate"], 2),
+                 "drifts how easily": round(ts["persona"]["distraction_rate"], 2),
+                 "knew pass^k": round(before["p_know"]["pass_k"], 2), "knows it now": round(ts["p_know"]["pass_k"], 2),
+                 "leans on help": round(ts["reliance"], 2), "tracker saw": tracked(out, out2)})
+pd.DataFrame(rows).set_index("type")
+""")
+md("""
+
+### 1.5 No reward
+Nothing in LearnOS says whether the tutor did well. The grader returns **facts**: a fixed test now and 2 days later, the hidden numbers above, proxies a real deployment could also measure (quiz scores, tracked minutes per app, messages sent), and flags such as "gave answers" or "nagging". Never a score. Deciding what counts as success is your job.
 """)
 
 md("""
@@ -179,14 +309,6 @@ from learnos_env.apps import REGISTRY
 print(inspect.getsource(REGISTRY["session"]["wait"].fn))
 """)
 
-md("""
-### 1.7 Known limits (report them, don't hide them)
-- **The write-up is never written.** The student asks for help with it, but the simulated student never writes and can't paste text. Only what they *learn* is measured. Real tutors keep asking "paste your paragraph and I'll fix it" and get nowhere. What the student asks for and what we measure differ: that gap is itself an evaluation lesson.
-- **Replies are short and fixed.** The student answers from a small set of lines ("hm ok", "sure", "can you just tell me the answer"). A tutor can't hold a real conversation with it.
-- **No reasoning in the traces.** The tutor model returns only tool calls, so Langfuse shows *what* it did, not *why*.
-- **The answer-giving harm is stronger than in the study** (−29% vs −17%, see 1.4). Our check used points instead of percent, so it passed; we kept the rules and report it here.
-- **The tutor spends a lot of its calls looking around** (reading files, the calendar, its own copy of the readings) before it teaches.
-""")
 
 md("""
 ## 2. What should the tutor do?
@@ -305,6 +427,28 @@ There are two kinds of "run it again":
 - **Different students:** does the tutor *work for different people*?
 
 `pass^k` (all k runs succeed) means something different for each. You'll choose one in Part B.
+""")
+
+md("""
+## 7. What this environment can't tell you
+### 7.1 Is the student realistic?
+We compared the rules with one real study, [Bastani et al. (PNAS 2025)](https://www.pnas.org/doi/10.1073/pnas.2422633122): about 1,000 high-school math students practised with plain ChatGPT, with a hint-only AI tutor, or with no AI, then took an exam without AI.
+
+| | Practice, with AI | Exam without AI |
+|---|---|---|
+| Paper: plain ChatGPT | +48% | **−17%** |
+| Paper: hint-only tutor | +127% | about the same as no AI |
+| Our student: tutor always gives the answer | +53% | **−29%** (stronger harm than the paper) |
+| Our student: tutor gives hints only | +88% | −8% |
+
+The direction matches; the size of the harm doesn't, and the setups differ (in the paper students *chose* to ask for answers and were tested soon after; our tutor hands answers out every time and our test is 2 days later, after forgetting). Separately, our student keeps about half of a mastered idea after a week: that is a design choice, not a measured result.
+
+### 7.2 Known limits (report them, don't hide them)
+- **The write-up is never written.** The student asks for help with it, but the simulated student never writes and can't paste text. Only what they *learn* is measured. Real tutors keep asking "paste your paragraph and I'll fix it" and get nowhere. What the student asks for and what we measure differ: that gap is itself an evaluation lesson.
+- **Replies are short and fixed.** The student answers from a small set of lines ("hm ok", "sure", "can you just tell me the answer"). A tutor can't hold a real conversation with it.
+- **No reasoning in the traces.** The tutor model returns only tool calls, so Langfuse shows *what* it did, not *why*.
+- **The answer-giving harm is stronger than in the study** (−29% vs −17%, above). Our check used points instead of percent, so it passed; we kept the rules and report it here.
+- **The tutor spends a lot of its calls looking around** (reading files, the calendar, its own copy of the readings) before it teaches.
 """)
 
 md("""
